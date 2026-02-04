@@ -169,7 +169,6 @@ class _AttendanceMapScreenState extends State<AttendanceMapScreen> {
             ),
           ),
 
-
           /// BOTTOM SHEET
           Positioned(
             bottom: 0,

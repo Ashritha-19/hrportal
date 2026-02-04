@@ -4,12 +4,11 @@ class AppColors {
   // Main Brand Colors
   static const Color olive = Color(0xFF808000);
   static const Color orange = Color(0xFFDB550B);
-  static const Color lightOrange = Color(0xFFFFA500);
-  static const Color darkOrange = Color(0xFFFAD145);
+  static const Color darkOrange = Color(0xFFFFA500);
+  static const Color lightOrange = Color(0xFFFAD145);
   // Greens
   static const Color kingLime = Color(0xFFAAD535); // Lime green
   static const Color jubilantMeadow = Color(0xFF73BF44); // Fresh green
-
   // Blacks / Greys
   static const Color black = Color(0xFF000000);
   static const Color blackPanther = Color(0xFF414142);
