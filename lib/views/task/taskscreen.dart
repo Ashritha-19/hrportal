@@ -1,9 +1,10 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import 'package:hrportal/service/tasksService.dart';
 import 'package:hrportal/views/task/taskcard.dart';
-import 'package:provider/provider.dart';
 
 class TasksScreen extends StatefulWidget {
   const TasksScreen({super.key});
@@ -27,32 +28,47 @@ class _TasksScreenState extends State<TasksScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TaskProvider>();
+    final theme = Theme.of(context);
 
     print('🔄 UI BUILD | Loading = ${provider.isLoading}');
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Tasks')),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: theme.cardColor,
+        elevation: 0,
+        title: Text(
+          'Tasks',
+          style: theme.textTheme.titleMedium,
+        ),
+        iconTheme: theme.iconTheme,
+      ),
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : provider.tasks.isEmpty
-          ? const Center(child: Text('No Tasks Found'))
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: provider.tasks.length,
-              itemBuilder: (context, index) {
-                final task = provider.tasks[index];
+              ? Center(
+                  child: Text(
+                    'No Tasks Found',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: provider.tasks.length,
+                  itemBuilder: (context, index) {
+                    final task = provider.tasks[index];
 
-                print('🧩 TASK $index: $task');
+                    print('🧩 TASK $index: $task');
 
-                return TaskCard(
-                  title: task['title'] ?? '',
-                  project: task['project_name'] ?? '',
-                  date: task['task_date'] ?? '',
-                  priority: task['priority'] ?? '',
-                  status: task['status'] ?? '',
-                );
-              },
-            ),
+                    return TaskCard(
+                      title: task['title'] ?? '',
+                      project: task['project_name'] ?? '',
+                      date: task['task_date'] ?? '',
+                      priority: task['priority'] ?? '',
+                      status: task['status'] ?? '',
+                    );
+                  },
+                ),
     );
   }
 }

@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use, use_build_context_synchronously
+// ignore_for_file: deprecated_member_use, use_build_context_synchronously, unnecessary_underscores
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,14 +19,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
   @override
   void initState() {
     super.initState();
-
     Future.microtask(() {
       context.read<ReportsProvider>().fetchReports();
       context.read<ProjectsProvider>().fetchProjects();
       context.read<WorkTypesProvider>().fetchWorkTypes();
     });
 
-    // restrict minutes to 0–59
     minutesController.addListener(() {
       final value = int.tryParse(minutesController.text);
       if (value != null && value > 59) {
@@ -36,9 +34,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
     });
   }
 
-  /// store ONLY IDs
   String selectedProjectId = "";
-  String selectedWorkType = ""; // name for now (can convert to ID later)
+  String selectedWorkType = "";
 
   final DateTime currentDate = DateTime.now();
 
@@ -52,13 +49,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: theme.cardColor,
         elevation: 0,
-        leading: const Icon(Icons.arrow_back_ios, color: Colors.black),
-        title: const Text("Reports", style: TextStyle(color: Colors.black)),
+        leading: Icon(Icons.arrow_back_ios, color: theme.iconTheme.color),
+        title: Text("Reports", style: theme.textTheme.titleMedium),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -68,19 +67,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
           children: [
             /// ================= SUBMIT REPORT =================
             _card(
+              theme,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Submit New Report",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  Text("Submit New Report", style: theme.textTheme.titleLarge),
                   const SizedBox(height: 16),
 
-                  /// -------- Project Dropdown (NAME SHOWN, ID STORED) --------
-                  _label("Select Project", Icons.folder),
+                  _label(theme, "Select Project", Icons.folder),
                   Consumer<ProjectsProvider>(
-                    builder: (context, provider, _) {
+                    builder: (_, provider, __) {
                       if (provider.isLoading) {
                         return const CircularProgressIndicator();
                       }
@@ -96,26 +92,24 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                       return DropdownButtonFormField<String>(
                         value: selectedProjectId,
-                        decoration: _inputDecoration(""),
+                        decoration: _inputDecoration(theme),
                         items: provider.projects.map((project) {
-                          return DropdownMenuItem<String>(
-                            value: project["id"].toString(), // ✅ ID
-                            child: Text(project["name"]), // 👀 NAME
+                          return DropdownMenuItem(
+                            value: project["id"].toString(),
+                            child: Text(project["name"]),
                           );
                         }).toList(),
-                        onChanged: (val) {
-                          setState(() => selectedProjectId = val!);
-                        },
+                        onChanged: (val) =>
+                            setState(() => selectedProjectId = val!),
                       );
                     },
                   ),
 
                   const SizedBox(height: 16),
 
-                  /// -------- Work Type Dropdown --------
-                  _label("Select Work Type", Icons.work),
+                  _label(theme, "Select Work Type", Icons.work),
                   Consumer<WorkTypesProvider>(
-                    builder: (context, provider, _) {
+                    builder: (_, provider, __) {
                       if (provider.isLoading) {
                         return const CircularProgressIndicator();
                       }
@@ -128,42 +122,43 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         selectedWorkType = provider.workTypes.first;
                       }
 
-                      return _dropdown(
-                        provider.workTypes,
-                        selectedWorkType,
-                        (val) => setState(() => selectedWorkType = val),
+                      return DropdownButtonFormField(
+                        value: selectedWorkType,
+                        decoration: _inputDecoration(theme),
+                        items: provider.workTypes
+                            .map(
+                              (e) => DropdownMenuItem(value: e, child: Text(e)),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => selectedWorkType = val!),
                       );
                     },
                   ),
 
                   const SizedBox(height: 16),
 
-                  /// -------- Date + Duration --------
                   Row(
                     children: [
-                      Expanded(child: _staticDate()),
+                      Expanded(child: _staticDate(theme)),
                       const SizedBox(width: 12),
-                      _durationPicker(),
+                      _durationPicker(theme),
                     ],
                   ),
 
                   const SizedBox(height: 16),
 
-                  /// -------- Task Description --------
-                  _label("Task Description", Icons.description),
+                  _label(theme, "Task Description", Icons.description),
                   TextField(
                     controller: taskController,
                     maxLines: 3,
-                    decoration: _inputDecoration(
-                      "Describe the tasks completed...",
-                    ),
+                    decoration: _inputDecoration(theme),
                   ),
 
                   const SizedBox(height: 20),
 
-                  /// -------- Submit Button --------
                   Consumer<SubmitReportProvider>(
-                    builder: (context, provider, _) {
+                    builder: (_, provider, __) {
                       return SizedBox(
                         width: double.infinity,
                         height: 48,
@@ -172,7 +167,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                               ? null
                               : _submitReport,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                            backgroundColor: theme.colorScheme.primary,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -181,13 +176,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                               ? const CircularProgressIndicator(
                                   color: Colors.white,
                                 )
-                              : const Text(
-                                  "Submit Report",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                              : const Text("Submit Report"),
                         ),
                       );
                     },
@@ -198,28 +187,24 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
             const SizedBox(height: 24),
 
-            /// ================= RECENT REPORTS =================
-            const Text(
-              "Recent Work Reports",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+            Text("Recent Work Reports", style: theme.textTheme.titleMedium),
             const SizedBox(height: 12),
 
             Consumer<ReportsProvider>(
-              builder: (context, provider, _) {
+              builder: (_, provider, __) {
                 if (provider.isLoading) {
-                  return const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Center(child: CircularProgressIndicator()),
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator(),
+                    ),
                   );
                 }
 
                 if (provider.reports.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      "No reports available",
-                      style: TextStyle(color: Colors.grey),
-                    ),
+                  return Text(
+                    "No reports available",
+                    style: theme.textTheme.bodySmall,
                   );
                 }
 
@@ -227,11 +212,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: provider.reports.length,
-                  itemBuilder: (context, index) {
+                  itemBuilder: (_, index) {
                     final report = provider.reports[index];
 
                     return _reportTile(
-                      color: _getColorByWorkType(report["work_type"]),
+                      theme,
+                      color: _getColorByWorkType(report["work_type"], theme),
                       icon: _getIconByWorkType(report["work_type"]),
                       time: report["report_date"] ?? "",
                       title:
@@ -248,7 +234,122 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  // ================= SUBMIT LOGIC =================
+  // ================= UI HELPERS =================
+
+  Widget _staticDate(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _label(theme, "Date", Icons.calendar_today),
+        const SizedBox(height: 6),
+        Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: _boxDecoration(theme),
+          alignment: Alignment.centerLeft,
+          child: Text(
+            "${currentDate.day}/${currentDate.month}/${currentDate.year}",
+            style: theme.textTheme.bodyMedium,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _durationPicker(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Duration", style: theme.textTheme.bodyMedium),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            _numberBox(theme, controller: hoursController),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 6),
+              child: Text(":"),
+            ),
+            _numberBox(theme, controller: minutesController),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _numberBox(
+    ThemeData theme, {
+    required TextEditingController controller,
+  }) {
+    return SizedBox(
+      height: 48,
+      width: 48,
+      child: Container(
+        decoration: _boxDecoration(theme),
+        alignment: Alignment.center,
+        child: TextField(
+          controller: controller,
+          textAlign: TextAlign.center,
+          maxLength: 2,
+          decoration: const InputDecoration(
+            border: InputBorder.none,
+            counterText: "",
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _label(ThemeData theme, String text, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: theme.colorScheme.primary),
+        const SizedBox(width: 8),
+        Text(text, style: theme.textTheme.bodyMedium),
+      ],
+    );
+  }
+
+  Widget _card(ThemeData theme, {required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: _boxDecoration(theme),
+      child: child,
+    );
+  }
+
+  Widget _reportTile(
+    ThemeData theme, {
+    required Color color,
+    required String title,
+    required String subtitle,
+    required String time,
+    required IconData icon,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: _boxDecoration(theme),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: color.withOpacity(0.15),
+            child: Icon(icon, color: color),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(time, style: theme.textTheme.bodySmall),
+                Text(title, style: theme.textTheme.bodyMedium),
+                Text(subtitle, style: theme.textTheme.bodySmall),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _submitReport() async {
     if (taskController.text.trim().isEmpty) {
@@ -298,144 +399,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
   }
 
-  // ================= UI HELPERS =================
-
-  Widget _staticDate() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _label("Date", Icons.calendar_today),
-        const SizedBox(height: 6),
-        Container(
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: _boxDecoration(),
-          alignment: Alignment.centerLeft,
-          child: Text(
-            "${currentDate.day}/${currentDate.month}/${currentDate.year}",
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _durationPicker() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text("Duration"),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            _numberBox(controller: hoursController),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 6),
-              child: Text(":"),
-            ),
-            _numberBox(controller: minutesController),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _numberBox({required TextEditingController controller}) {
-    return SizedBox(
-      height: 48,
-      width: 48,
-      child: Container(
-        decoration: _boxDecoration(),
-        alignment: Alignment.center,
-        child: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          textAlign: TextAlign.center,
-          maxLength: 2,
-          decoration: const InputDecoration(
-            border: InputBorder.none,
-            counterText: "",
-            isDense: true,
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _dropdown(
-    List<String> items,
-    String value,
-    ValueChanged<String> onChanged,
-  ) {
-    return DropdownButtonFormField(
-      value: value,
-      decoration: _inputDecoration(""),
-      items: items
-          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-          .toList(),
-      onChanged: (val) => onChanged(val!),
-    );
-  }
-
-  Widget _label(String text, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: Colors.blue),
-        const SizedBox(width: 8),
-        Text(text),
-      ],
-    );
-  }
-
-  Widget _card({required Widget child}) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: _boxDecoration(color: Colors.white),
-      child: child,
-    );
-  }
-
-  Widget _reportTile({
-    required Color color,
-    required String title,
-    required String subtitle,
-    required String time,
-    required IconData icon,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: _boxDecoration(color: Colors.white),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: color.withOpacity(0.15),
-            child: Icon(icon, color: color),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(time, style: const TextStyle(color: Colors.grey)),
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(subtitle, style: const TextStyle(color: Colors.grey)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration(String hint) {
+  InputDecoration _inputDecoration(ThemeData theme) {
     return InputDecoration(
-      hintText: hint,
       filled: true,
-      fillColor: const Color(0xFFF5F6FA),
+      fillColor: theme.cardColor,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
@@ -443,20 +410,23 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  BoxDecoration _boxDecoration({Color color = const Color(0xFFF5F6FA)}) {
-    return BoxDecoration(color: color, borderRadius: BorderRadius.circular(12));
+  BoxDecoration _boxDecoration(ThemeData theme) {
+    return BoxDecoration(
+      color: theme.cardColor,
+      borderRadius: BorderRadius.circular(12),
+    );
   }
 
-  Color _getColorByWorkType(String? type) {
+  Color _getColorByWorkType(String? type, ThemeData theme) {
     switch (type) {
       case "Tech":
-        return Colors.blue;
+        return theme.colorScheme.primary;
       case "Social Media":
         return Colors.green;
       case "AMC":
         return Colors.orange;
       default:
-        return Colors.grey;
+        return theme.iconTheme.color ?? Colors.grey;
     }
   }
 

@@ -1,12 +1,16 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use, unnecessary_underscores
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
+
 import 'package:hrportal/service/dashboardservice.dart';
+import 'package:hrportal/service/profile/theme.dart';
+
+import 'package:hrportal/views/profile/attendance.dart';
 import 'package:hrportal/views/profile/leaveReq.dart';
 import 'package:hrportal/views/profile/overTimeReq.dart';
 import 'package:hrportal/views/profile/payslips.dart';
-import 'package:provider/provider.dart';
 import 'package:hrportal/views/profile/wfh.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -19,7 +23,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F4F8),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(child: _body(context)),
     );
   }
@@ -58,9 +62,9 @@ class ProfileScreen extends StatelessWidget {
             child: Container(
               height: screenHeight * whiteContainerRatio,
               width: double.infinity,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(curveRadius),
                   topRight: Radius.circular(curveRadius),
                 ),
@@ -91,7 +95,6 @@ class ProfileScreen extends StatelessWidget {
 
                     const SizedBox(height: 8),
 
-                    /// ================= EMPLOYEE DETAILS =================
                     _InfoRow(
                       Icons.badge_outlined,
                       "Employee ID : ${employee?["code"] ?? "—"}",
@@ -115,6 +118,11 @@ class ProfileScreen extends StatelessWidget {
 
                     /// ================= ACTION SECTION =================
                     _sectionCard([
+                      _menuTile(
+                        Icons.home_work_outlined,
+                        "Attendance",
+                        const AttendanceScreen(),
+                      ),
                       _menuTile(
                         Icons.receipt_long_outlined,
                         "Leave Requests",
@@ -167,7 +175,7 @@ class ProfileScreen extends StatelessWidget {
                       backgroundImage: employee?["profile_image"] != null
                           ? NetworkImage(employee["profile_image"])
                           : const AssetImage("assets/profile.png")
-                                as ImageProvider,
+                              as ImageProvider,
                     ),
                   ),
                   Positioned(
@@ -187,6 +195,24 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
           ),
+
+          /// 🌗 ================= THEME TOGGLE BUTTON =================
+          Positioned(
+            top: 16,
+            right: 16,
+            child: Consumer<ThemeProvider>(
+              builder: (_, theme, __) {
+                return IconButton(
+                  icon: Icon(
+                    theme.isDark ? Icons.light_mode : Icons.dark_mode,
+                    color: Colors.white,
+                    size: 26,
+                  ),
+                  onPressed: theme.toggleTheme,
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -197,7 +223,7 @@ class ProfileScreen extends StatelessWidget {
   Widget _sectionCard(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(Get.context!).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8),
@@ -212,16 +238,14 @@ class ProfileScreen extends StatelessWidget {
       leading: Icon(icon, color: Colors.blue),
       title: Text(title, style: const TextStyle(fontSize: 15)),
       trailing: const Icon(Icons.chevron_right),
-      onTap: () {
-        Get.to(destination);
-      },
+      onTap: () => Get.to(destination),
     );
   }
 
   Widget _logoutCard() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(Get.context!).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8),

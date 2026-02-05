@@ -16,4 +16,6 @@ class Apiconstants {
   static const String submitLeaveRequestEndpoint = "leaves/apply";
   static const String overTimeRequestsEndpoint = "overtime";
   static const String submitOverTimeRequestEndpoint = "overtime/request";
+  static const String attendanceEndpoint = "attendance";
+  static const String attendanceReasonEndpoint = "attendance/reason";
 }

@@ -20,15 +20,17 @@ class TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: theme.shadowColor.withOpacity(0.08),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -37,39 +39,51 @@ class TaskCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          /// TITLE
           Row(
             children: [
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: theme.textTheme.titleMedium,
                 ),
               ),
-              // const Icon(Icons.chevron_right),
             ],
           ),
+
           const SizedBox(height: 6),
 
+          /// PROJECT
           Row(
             children: [
-              const Icon(Icons.folder, size: 16, color: Colors.blue),
+              Icon(
+                Icons.folder,
+                size: 16,
+                color: theme.colorScheme.primary,
+              ),
               const SizedBox(width: 6),
-              Text(project, style: const TextStyle(color: Colors.grey)),
+              Text(
+                project,
+                style: theme.textTheme.bodySmall,
+              ),
             ],
           ),
 
           const SizedBox(height: 10),
 
-          Row(
+          /// CHIPS
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
             children: [
-              _chip("Date: $date", Colors.grey.shade200, Colors.black),
-              const SizedBox(width: 6),
-              _priorityChip(priority),
-              const SizedBox(width: 6),
-              _chip(status, Colors.green.shade100, Colors.green),
+              _chip(
+                context,
+                "Date: $date",
+                theme.colorScheme.surfaceVariant,
+                theme.textTheme.bodySmall!.color!,
+              ),
+              _priorityChip(context, priority),
+              _statusChip(context, status),
             ],
           ),
         ],
@@ -77,39 +91,62 @@ class TaskCard extends StatelessWidget {
     );
   }
 
-  Widget _chip(String text, Color bg, Color color) {
+  // ================= CHIP HELPERS =================
+
+  Widget _chip(
+    BuildContext context,
+    String text,
+    Color bg,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(text, style: TextStyle(fontSize: 12, color: color)),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 12, color: color),
+      ),
     );
   }
 
-  Widget _priorityChip(String priority) {
+  Widget _priorityChip(BuildContext context, String priority) {
+    final theme = Theme.of(context);
+
     Color bgColor;
     Color textColor;
 
     switch (priority.toLowerCase()) {
       case 'high':
-        bgColor = Colors.red.shade100;
+        bgColor = Colors.red.withOpacity(0.15);
         textColor = Colors.red;
         break;
       case 'medium':
-        bgColor = Colors.orange.shade100;
+        bgColor = Colors.orange.withOpacity(0.15);
         textColor = Colors.orange;
         break;
       case 'low':
-        bgColor = Colors.green.shade100;
+        bgColor = Colors.green.withOpacity(0.15);
         textColor = Colors.green;
         break;
       default:
-        bgColor = Colors.grey.shade200;
-        textColor = Colors.black;
+        bgColor = theme.colorScheme.surfaceVariant;
+        textColor = theme.textTheme.bodySmall!.color!;
     }
 
-    return _chip(priority, bgColor, textColor);
+    return _chip(context, priority, bgColor, textColor);
+  }
+
+  Widget _statusChip(BuildContext context, String status) {
+    final theme = Theme.of(context);
+
+    return _chip(
+      context,
+      status,
+      theme.colorScheme.primary.withOpacity(0.15),
+      theme.colorScheme.primary,
+    );
   }
 }
