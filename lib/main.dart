@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hrportal/service/profile/editProfileService.dart';
 import 'package:provider/provider.dart';
 import 'package:hrportal/constants/approutes.dart';
 import 'package:hrportal/service/loginservice.dart';
@@ -40,6 +41,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => OvertimeProvider()),
         ChangeNotifierProvider(create: (_) => AttendanceProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => ProfileProvider()),
       ],
 
       /// 👇 IMPORTANT PART

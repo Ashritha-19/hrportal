@@ -19,6 +19,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   @override
   void initState() {
     super.initState();
+
     Future.microtask(() {
       context.read<ReportsProvider>().fetchReports();
       context.read<ProjectsProvider>().fetchProjects();
@@ -56,9 +57,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
       appBar: AppBar(
         backgroundColor: theme.cardColor,
         elevation: 0,
-        leading: Icon(Icons.arrow_back_ios, color: theme.iconTheme.color),
-        title: Text("Reports", style: theme.textTheme.titleMedium),
-        centerTitle: true,
+        title: Text(
+          "Daily Reports",
+          style: theme.textTheme.titleMedium!.copyWith(
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+            color: theme.brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black87,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -92,6 +100,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                       return DropdownButtonFormField<String>(
                         value: selectedProjectId,
+                        isDense: true,
                         decoration: _inputDecoration(theme),
                         items: provider.projects.map((project) {
                           return DropdownMenuItem(
@@ -122,8 +131,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         selectedWorkType = provider.workTypes.first;
                       }
 
-                      return DropdownButtonFormField(
+                      return DropdownButtonFormField<String>(
                         value: selectedWorkType,
+                        isDense: true,
                         decoration: _inputDecoration(theme),
                         items: provider.workTypes
                             .map(
@@ -157,6 +167,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                   const SizedBox(height: 20),
 
+                  /// ✅ GREEN BUTTON WITH WHITE TEXT
                   Consumer<SubmitReportProvider>(
                     builder: (_, provider, __) {
                       return SizedBox(
@@ -167,7 +178,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                               ? null
                               : _submitReport,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: theme.colorScheme.primary,
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -176,7 +188,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
                               ? const CircularProgressIndicator(
                                   color: Colors.white,
                                 )
-                              : const Text("Submit Report"),
+                              : const Text(
+                                  "Submit Report",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                         ),
                       );
                     },
@@ -234,7 +252,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  // ================= UI HELPERS =================
+  // ================= HELPERS =================
 
   Widget _staticDate(ThemeData theme) {
     return Column(
@@ -245,8 +263,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
         Container(
           height: 48,
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: _boxDecoration(theme),
           alignment: Alignment.centerLeft,
+          decoration: _outlinedBox(theme),
           child: Text(
             "${currentDate.day}/${currentDate.month}/${currentDate.year}",
             style: theme.textTheme.bodyMedium,
@@ -284,7 +302,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       height: 48,
       width: 48,
       child: Container(
-        decoration: _boxDecoration(theme),
+        decoration: _outlinedBox(theme),
         alignment: Alignment.center,
         child: TextField(
           controller: controller,
@@ -312,7 +330,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Widget _card(ThemeData theme, {required Widget child}) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: _boxDecoration(theme),
+      decoration: _outlinedBox(theme),
       child: child,
     );
   }
@@ -328,7 +346,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
-      decoration: _boxDecoration(theme),
+      decoration: _outlinedBox(theme),
       child: Row(
         children: [
           CircleAvatar(
@@ -351,69 +369,27 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  void _submitReport() async {
-    if (taskController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter task description"),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    final int hours = int.tryParse(hoursController.text) ?? 0;
-    final int minutes = int.tryParse(minutesController.text) ?? 0;
-
-    final totalHours = hours + (minutes / 60);
-
-    final success = await context.read<SubmitReportProvider>().submitReport(
-      projectId: selectedProjectId, // ✅ ID sent
-      taskDescription: taskController.text.trim(),
-      hoursWorked: totalHours.toStringAsFixed(2),
-      reportDate:
-          "${currentDate.year}-${currentDate.month.toString().padLeft(2, '0')}-${currentDate.day.toString().padLeft(2, '0')}",
-      workType: selectedWorkType,
-    );
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Report submitted successfully"),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      setState(() {
-        // clear text fields
-        taskController.clear();
-        hoursController.text = "00";
-        minutesController.text = "00";
-
-        // 🔥 RESET DROPDOWNS
-        selectedProjectId = "";
-        selectedWorkType = "";
-      });
-
-      context.read<ReportsProvider>().fetchReports();
-    }
-  }
-
   InputDecoration _inputDecoration(ThemeData theme) {
     return InputDecoration(
       filled: true,
       fillColor: theme.cardColor,
-      border: OutlineInputBorder(
+      enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+        borderSide: BorderSide(color: theme.dividerColor),
       ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
     );
   }
 
-  BoxDecoration _boxDecoration(ThemeData theme) {
+  BoxDecoration _outlinedBox(ThemeData theme) {
     return BoxDecoration(
       color: theme.cardColor,
       borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: theme.dividerColor),
     );
   }
 
@@ -440,6 +416,51 @@ class _ReportsScreenState extends State<ReportsScreen> {
         return Icons.build;
       default:
         return Icons.work_outline;
+    }
+  }
+
+  void _submitReport() async {
+    if (taskController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter task description"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final int hours = int.tryParse(hoursController.text) ?? 0;
+    final int minutes = int.tryParse(minutesController.text) ?? 0;
+
+    final totalHours = hours + (minutes / 60);
+
+    final success = await context.read<SubmitReportProvider>().submitReport(
+      projectId: selectedProjectId,
+      taskDescription: taskController.text.trim(),
+      hoursWorked: totalHours.toStringAsFixed(2),
+      reportDate:
+          "${currentDate.year}-${currentDate.month.toString().padLeft(2, '0')}-${currentDate.day.toString().padLeft(2, '0')}",
+      workType: selectedWorkType,
+    );
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Report submitted successfully"),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      setState(() {
+        taskController.clear();
+        hoursController.text = "00";
+        minutesController.text = "00";
+        selectedProjectId = "";
+        selectedWorkType = "";
+      });
+
+      context.read<ReportsProvider>().fetchReports();
     }
   }
 }

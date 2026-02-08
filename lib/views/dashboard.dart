@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print, use_build_context_synchronously, deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:hrportal/service/dashboardservice.dart';
 
@@ -46,61 +47,76 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final holidays = data["upcoming_holidays"] ?? [];
     final birthdays = data["upcoming_birthdays"] ?? [];
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: theme.cardColor,
-        elevation: 0,
-        title: Text("Dashboard", style: theme.textTheme.titleMedium),
-        iconTheme: theme.iconTheme,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _profileCard(employee, theme),
-            const SizedBox(height: 12),
-
-            Row(
-              children: [
-                _clockCard(provider, theme),
-                const SizedBox(width: 12),
-                _infoCard(
-                  theme,
-                  "Shift Timings",
-                  "10:30 AM - 7:00 PM",
-                  Icons.access_time,
-                  sub: "8 hrs 30 mins",
-                ),
-              ],
+    return PopScope(
+      canPop: false, // ⛔ prevent default back
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        _showExitPopup(context);
+      },
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          backgroundColor: theme.cardColor,
+          elevation: 0,
+          title: Text(
+            "Dashboard",
+            style: theme.textTheme.titleMedium!.copyWith(
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              color: theme.brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black87,
             ),
+          ),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              _profileCard(employee, theme),
+              const SizedBox(height: 12),
 
-            const SizedBox(height: 12),
+              Row(
+                children: [
+                  _clockCard(provider, theme),
+                  const SizedBox(width: 12),
+                  _infoCard(
+                    theme,
+                    "Shift Timings",
+                    "10:30 AM - 7:00 PM",
+                    Icons.access_time,
+                    sub: "8 hrs 30 mins",
+                  ),
+                ],
+              ),
 
-            Row(
-              children: [
-                _infoCard(
-                  theme,
-                  "First Login Today",
-                  attendance["check_in"] ?? "--",
-                  Icons.login,
-                ),
-                const SizedBox(width: 12),
-                _infoCard(
-                  theme,
-                  "Leave Balance",
-                  "${data["leave_balance"]} Days",
-                  Icons.event_available,
-                ),
-              ],
-            ),
+              const SizedBox(height: 12),
 
-            const SizedBox(height: 12),
+              Row(
+                children: [
+                  _infoCard(
+                    theme,
+                    "First Login Today",
+                    attendance["check_in"] ?? "--",
+                    Icons.login,
+                  ),
+                  const SizedBox(width: 12),
+                  _infoCard(
+                    theme,
+                    "Leave Balance",
+                    "${data["leave_balance"]} Days",
+                    Icons.event_available,
+                  ),
+                ],
+              ),
 
-            if (holidays.isNotEmpty) _upcomingHolidays(holidays, theme),
-            const SizedBox(height: 12),
-            if (birthdays.isNotEmpty) _upcomingBirthdays(birthdays, theme),
-          ],
+              const SizedBox(height: 12),
+
+              if (holidays.isNotEmpty) _upcomingHolidays(holidays, theme),
+              const SizedBox(height: 12),
+              if (birthdays.isNotEmpty) _upcomingBirthdays(birthdays, theme),
+            ],
+          ),
         ),
       ),
     );
@@ -126,10 +142,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onPressed: provider.toggleClock,
               style: ElevatedButton.styleFrom(
                 backgroundColor: provider.isClockedIn
-                    ? theme.colorScheme.error
-                    : theme.colorScheme.primary,
+                    ? Colors.red
+                    : Colors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-              child: const Text("Toggle"),
+              child: Text(
+                provider.isClockedIn ? "Check Out" : "Check In",
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
             ),
           ],
         ),
@@ -219,6 +249,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  void _showExitPopup(BuildContext context) {
+    final theme = Theme.of(context);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: theme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.exit_to_app, size: 48, color: Colors.redAccent),
+                const SizedBox(height: 16),
+
+                Text(
+                  "Exit App",
+                  style: theme.textTheme.titleLarge!.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                Text(
+                  "Are you sure you want to exit?",
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
+
+                const SizedBox(height: 24),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("No"),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          SystemNavigator.pop(); // 🔥 CLOSE APP
+                        },
+                        child: const Text("Yes"),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   /// ℹ️ INFO CARD
   Widget _infoCard(
     ThemeData theme,
@@ -262,6 +361,3 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ],
   );
 }
-
-
- 

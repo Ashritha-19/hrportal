@@ -29,6 +29,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   /// 🧱 Title : Value row
   Widget titleValue(
+    ThemeData theme,
     String title,
     String value, {
     Color? valueColor,
@@ -43,17 +44,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             width: 130,
             child: Text(
               "$title :",
-              style: const TextStyle(
+              style: theme.textTheme.bodyMedium!.copyWith(
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
               ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: TextStyle(
-                color: valueColor ?? Colors.black54,
+              style: theme.textTheme.bodyMedium!.copyWith(
+                color: valueColor ?? theme.textTheme.bodySmall!.color,
                 fontWeight: valueWeight ?? FontWeight.normal,
               ),
             ),
@@ -78,10 +78,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     required String date,
   }) {
     final TextEditingController reasonController = TextEditingController();
+    final theme = Theme.of(context);
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: theme.cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -99,17 +101,20 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     "Add Late Reason",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleMedium!.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
 
                   const SizedBox(height: 20),
 
-                  // 📅 Date (static)
-                  const Text(
+                  Text(
                     "Date",
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.bodyMedium!.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Container(
@@ -118,35 +123,31 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       horizontal: 12,
                       vertical: 14,
                     ),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    decoration: _outlinedBox(theme),
                     child: Text(formatDate(date)),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // 📝 Reason
-                  const Text(
+                  Text(
                     "Reason",
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.bodyMedium!.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   TextField(
                     controller: reasonController,
                     maxLines: 3,
-                    decoration: InputDecoration(
-                      hintText: "Enter late reason",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                    decoration: _inputDecoration(
+                      theme,
+                      hint: "Enter late reason",
                     ),
                   ),
 
                   const SizedBox(height: 20),
 
-                  // 🔘 Submit
+                  /// 🟢 GREEN BUTTON
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -171,16 +172,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
                               if (!success) return;
 
-                              // ✅ 1. Clear controller
                               reasonController.clear();
-
-                              // ✅ 2. Close bottom sheet
                               Navigator.pop(sheetContext);
 
-                              // ✅ 3. Show SnackBar AFTER sheet closes
                               Future.delayed(Duration.zero, () {
                                 if (!mounted) return;
-
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
@@ -191,7 +187,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 );
                               });
                             },
-
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                      ),
                       child: ap.isSubmitting
                           ? const SizedBox(
                               height: 18,
@@ -218,8 +217,25 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   // ===============================
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text("My Attendance History")),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: theme.cardColor,
+        elevation: 0,
+        title: Text(
+          "My Attendance",
+          style: theme.textTheme.titleMedium!.copyWith(
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+            color: theme.brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black87,
+          ),
+        ),
+        iconTheme: theme.iconTheme,
+      ),
       body: Consumer<AttendanceProvider>(
         builder: (_, ap, __) {
           if (ap.isLoading) {
@@ -227,7 +243,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           }
 
           if (ap.attendanceList.isEmpty) {
-            return const Center(child: Text("No attendance data"));
+            return Center(
+              child: Text(
+                "No attendance data",
+                style: theme.textTheme.bodyMedium,
+              ),
+            );
           }
 
           return ListView.builder(
@@ -238,6 +259,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 elevation: 2,
+                color: theme.cardColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -246,35 +268,39 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      titleValue("Date", formatDate(item['attendance_date'])),
-
-                      titleValue("Check-in Time", item['check_in_time'] ?? "-"),
-
                       titleValue(
+                        theme,
+                        "Date",
+                        formatDate(item['attendance_date']),
+                      ),
+                      titleValue(
+                        theme,
+                        "Check-in Time",
+                        item['check_in_time'] ?? "-",
+                      ),
+                      titleValue(
+                        theme,
                         "Status",
                         item['status'],
                         valueColor: statusColor(item['status']),
                         valueWeight: FontWeight.w600,
                       ),
-
                       titleValue(
+                        theme,
                         "Late Justification",
                         item['late_reason'] ?? "-",
                       ),
-
-                      titleValue("Approval", item['approval_status'] ?? "-"),
-
+                      titleValue(
+                        theme,
+                        "Approval",
+                        item['approval_status'] ?? "-",
+                      ),
                       const SizedBox(height: 10),
-
                       if (item['is_late'] == "1")
                         Align(
                           alignment: Alignment.centerRight,
                           child: ElevatedButton.icon(
                             onPressed: () {
-                              print(
-                                "✏️ Add Reason clicked for ID => ${item['id']}",
-                              );
-
                               showAddReasonBottomSheet(
                                 context: context,
                                 attendanceId: int.parse(item['id'].toString()),
@@ -283,6 +309,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             },
                             icon: const Icon(Icons.edit, size: 16),
                             label: const Text("Add Reason"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                            ),
                           ),
                         ),
                     ],
@@ -293,6 +323,34 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           );
         },
       ),
+    );
+  }
+
+  // ===============================
+  // 🎨 DECORATIONS
+  // ===============================
+
+  InputDecoration _inputDecoration(ThemeData theme, {String? hint}) {
+    return InputDecoration(
+      hintText: hint,
+      filled: true,
+      fillColor: theme.cardColor,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: theme.dividerColor),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
+      ),
+    );
+  }
+
+  BoxDecoration _outlinedBox(ThemeData theme) {
+    return BoxDecoration(
+      color: theme.cardColor,
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: theme.dividerColor),
     );
   }
 }

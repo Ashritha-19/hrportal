@@ -38,37 +38,39 @@ class _TasksScreenState extends State<TasksScreen> {
         backgroundColor: theme.cardColor,
         elevation: 0,
         title: Text(
-          'Tasks',
-          style: theme.textTheme.titleMedium,
+          "My Tasks",
+          style: theme.textTheme.titleMedium!.copyWith(
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+            color: theme.brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black87,
+          ),
         ),
-        iconTheme: theme.iconTheme,
       ),
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : provider.tasks.isEmpty
-              ? Center(
-                  child: Text(
-                    'No Tasks Found',
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: provider.tasks.length,
-                  itemBuilder: (context, index) {
-                    final task = provider.tasks[index];
+          ? Center(
+              child: Text('No Tasks Found', style: theme.textTheme.bodyMedium),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: provider.tasks.length,
+              itemBuilder: (context, index) {
+                final task = provider.tasks[index];
 
-                    print('🧩 TASK $index: $task');
+                print('🧩 TASK $index: $task');
 
-                    return TaskCard(
-                      title: task['title'] ?? '',
-                      project: task['project_name'] ?? '',
-                      date: task['task_date'] ?? '',
-                      priority: task['priority'] ?? '',
-                      status: task['status'] ?? '',
-                    );
-                  },
-                ),
+                return TaskCard(
+                  title: task['title'] ?? '',
+                  project: task['project_name'] ?? '',
+                  date: task['task_date'] ?? '',
+                  priority: task['priority'] ?? '',
+                  status: task['status'] ?? '',
+                );
+              },
+            ),
     );
   }
 }

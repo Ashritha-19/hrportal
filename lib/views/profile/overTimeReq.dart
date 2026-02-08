@@ -1,4 +1,4 @@
-// ignore_for_file: file_names, use_build_context_synchronously, avoid_print, deprecated_member_use, unnecessary_underscores
+// ignore_for_file: file_names, use_build_context_synchronously, deprecated_member_use, unnecessary_underscores
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +17,6 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
   @override
   void initState() {
     super.initState();
-
     Future.microtask(() {
       context.read<OvertimeProvider>().fetchOvertime();
       context.read<ProjectsProvider>().fetchProjects();
@@ -27,10 +26,27 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('My Overtime History')),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: theme.cardColor,
+        elevation: 0,
+        title: Text(
+          "Over Time Requests",
+          style: theme.textTheme.titleMedium!.copyWith(
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+            color: theme.brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black87,
+          ),
+        ),
+        iconTheme: theme.iconTheme,
+      ),
       body: Consumer<OvertimeProvider>(
-        builder: (context, provider, _) {
+        builder: (_, provider, __) {
           return Column(
             children: [
               /// REQUEST BUTTON
@@ -42,16 +58,16 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
                     onPressed: () => _openRequestCard(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: const Text(
-                      'Submit Leave Request',
+                      'Submit Overtime Request',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -63,15 +79,21 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
                 child: provider.isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : provider.overtimeList.isEmpty
-                    ? const Center(child: Text('No Overtime Data'))
+                    ? Center(
+                        child: Text(
+                          'No Overtime Data',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      )
                     : ListView.builder(
                         padding: const EdgeInsets.all(12),
                         itemCount: provider.overtimeList.length,
-                        itemBuilder: (context, index) {
+                        itemBuilder: (_, index) {
                           final item = provider.overtimeList[index];
 
                           return Card(
-                            elevation: 3,
+                            color: theme.cardColor,
+                            elevation: 2,
                             margin: const EdgeInsets.only(bottom: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -87,19 +109,29 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
                                     children: [
                                       Text(
                                         item['ot_date'] ?? '-',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        style: theme.textTheme.titleMedium!
+                                            .copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                       ),
                                       _statusChip(item['status']),
                                     ],
                                   ),
                                   const SizedBox(height: 10),
-                                  _infoRow('Type', item['ot_type']),
-                                  _infoRow('Project', item['project_name']),
-                                  _infoRow('Hours', '${item['ot_hours']} hrs'),
-                                  _infoRow('Reason', item['reason']),
+                                  _infoRow(theme, 'Type', item['ot_type']),
                                   _infoRow(
+                                    theme,
+                                    'Project',
+                                    item['project_name'],
+                                  ),
+                                  _infoRow(
+                                    theme,
+                                    'Hours',
+                                    '${item['ot_hours']} hrs',
+                                  ),
+                                  _infoRow(theme, 'Reason', item['reason']),
+                                  _infoRow(
+                                    theme,
                                     'Admin Remark',
                                     (item['admin_remarks'] == null ||
                                             item['admin_remarks']
@@ -123,13 +155,14 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
   }
 
   // ======================================================
-  // REQUEST OVERTIME BOTTOM CARD
+  // REQUEST OVERTIME BOTTOM SHEET
   // ======================================================
   void _openRequestCard(BuildContext context) {
+    final theme = Theme.of(context);
+
     String? selectedOtType;
     String? selectedWorkType;
     Map<String, dynamic>? selectedProject;
-
     DateTime selectedDate = DateTime.now();
 
     final hoursController = TextEditingController();
@@ -139,6 +172,7 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: theme.cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -157,10 +191,9 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       'Request Overtime',
-                      style: TextStyle(
-                        fontSize: 16,
+                      style: theme.textTheme.titleMedium!.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -182,8 +215,11 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
                         }
                       },
                       child: InputDecorator(
-                        decoration: _boxDecoration('Date'),
-                        child: Text(selectedDate.toString().split(' ')[0]),
+                        decoration: _inputDecoration(theme, 'Date'),
+                        child: Text(
+                          selectedDate.toString().split(' ')[0],
+                          style: theme.textTheme.bodyMedium,
+                        ),
                       ),
                     ),
 
@@ -193,7 +229,7 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
                     Consumer<WorkTypesProvider>(
                       builder: (_, wp, __) {
                         return DropdownButtonFormField<String>(
-                          decoration: _boxDecoration('Work Type'),
+                          decoration: _inputDecoration(theme, 'Work Type'),
                           items: wp.workTypes
                               .map(
                                 (e) =>
@@ -209,7 +245,7 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
 
                     /// OT TYPE
                     DropdownButtonFormField<String>(
-                      decoration: _boxDecoration('Overtime Category'),
+                      decoration: _inputDecoration(theme, 'Overtime Category'),
                       items: const [
                         DropdownMenuItem(
                           value: 'weekend',
@@ -237,7 +273,7 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
                     Consumer<ProjectsProvider>(
                       builder: (_, pp, __) {
                         return DropdownButtonFormField<Map<String, dynamic>>(
-                          decoration: _boxDecoration('Project'),
+                          decoration: _inputDecoration(theme, 'Project'),
                           items: pp.projects
                               .map(
                                 (p) => DropdownMenuItem(
@@ -260,7 +296,7 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
                           child: TextField(
                             controller: hoursController,
                             keyboardType: TextInputType.number,
-                            decoration: _boxDecoration('Hours (0–23)'),
+                            decoration: _inputDecoration(theme, 'Hours (0–23)'),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -268,7 +304,10 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
                           child: TextField(
                             controller: minutesController,
                             keyboardType: TextInputType.number,
-                            decoration: _boxDecoration('Minutes (0–59)'),
+                            decoration: _inputDecoration(
+                              theme,
+                              'Minutes (0–59)',
+                            ),
                           ),
                         ),
                       ],
@@ -280,7 +319,7 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
                     TextField(
                       controller: reasonController,
                       maxLines: 3,
-                      decoration: _boxDecoration('Reason / Description'),
+                      decoration: _inputDecoration(theme, 'Reason'),
                     ),
 
                     const SizedBox(height: 16),
@@ -288,51 +327,54 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
                     /// SUBMIT
                     Consumer<OvertimeProvider>(
                       builder: (_, op, __) {
-                        return Center(
-                          child: SizedBox(
-                            child: ElevatedButton(
-                              onPressed: op.isSubmitting
-                                  ? null
-                                  : () async {
-                                      final hrs =
-                                          int.tryParse(hoursController.text) ?? 0;
-                                      final mins =
-                                          int.tryParse(minutesController.text) ??
-                                          0;
-                          
-                                      final totalHours = hrs + (mins / 60);
-                          
-                                      final success = await op.submitOvertime(
-                                        otDate: selectedDate.toString().split(
-                                          ' ',
-                                        )[0],
-                                        otHours: totalHours.toStringAsFixed(2),
-                                        reason: reasonController.text,
-                                        projectId: selectedProject!['id'],
-                                        otType: selectedOtType!,
-                                        workType: selectedWorkType!,
-                                      );
-                          
-                                      if (success) {
-                                        Navigator.pop(context);
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Overtime request submitted successfully',
-                                            ),
-                                            backgroundColor: Colors.green,
+                        return SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: op.isSubmitting
+                                ? null
+                                : () async {
+                                    final hrs =
+                                        int.tryParse(hoursController.text) ?? 0;
+                                    final mins =
+                                        int.tryParse(minutesController.text) ??
+                                        0;
+
+                                    final totalHours = hrs + (mins / 60);
+
+                                    final success = await op.submitOvertime(
+                                      otDate: selectedDate.toString().split(
+                                        ' ',
+                                      )[0],
+                                      otHours: totalHours.toStringAsFixed(2),
+                                      reason: reasonController.text,
+                                      projectId: selectedProject!['id'],
+                                      otType: selectedOtType!,
+                                      workType: selectedWorkType!,
+                                    );
+
+                                    if (success) {
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Overtime request submitted successfully',
                                           ),
-                                        );
-                                      }
-                                    },
-                              child: op.isSubmitting
-                                  ? const CircularProgressIndicator(
-                                      color: Colors.white,
-                                    )
-                                  : const Text('Submit Request'),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
                             ),
+                            child: op.isSubmitting
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : const Text('Submit Request'),
                           ),
                         );
                       },
@@ -352,7 +394,7 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
   // ======================================================
   // UI HELPERS
   // ======================================================
-  Widget _infoRow(String label, String? value) {
+  Widget _infoRow(ThemeData theme, String label, String? value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
@@ -362,21 +404,18 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
             width: 110,
             child: Text(
               '$label :',
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+              style: theme.textTheme.bodySmall!.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           Expanded(
             child: Text(
               value ?? '-',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: (value == null || value == '-')
-                    ? Colors.grey
-                    : Colors.black,
+              style: theme.textTheme.bodySmall!.copyWith(
                 fontStyle: (value == null || value == '-')
                     ? FontStyle.italic
-                    : FontStyle.normal,
+                    : null,
               ),
             ),
           ),
@@ -414,17 +453,18 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
     }
   }
 
-  InputDecoration _boxDecoration(String label) {
+  InputDecoration _inputDecoration(ThemeData theme, String label) {
     return InputDecoration(
       labelText: label,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+      filled: true,
+      fillColor: theme.cardColor,
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.grey.shade400),
+        borderSide: BorderSide(color: theme.dividerColor),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Colors.blue),
+        borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
     );

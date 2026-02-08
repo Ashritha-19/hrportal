@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hrportal/views/profile/editProfile.dart';
+import 'package:hrportal/views/profile/logout.dart';
 import 'package:provider/provider.dart';
 
 import 'package:hrportal/service/dashboardservice.dart';
@@ -12,6 +14,7 @@ import 'package:hrportal/views/profile/leaveReq.dart';
 import 'package:hrportal/views/profile/overTimeReq.dart';
 import 'package:hrportal/views/profile/payslips.dart';
 import 'package:hrportal/views/profile/wfh.dart';
+
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -119,7 +122,12 @@ class ProfileScreen extends StatelessWidget {
                     /// ================= ACTION SECTION =================
                     _sectionCard([
                       _menuTile(
-                        Icons.home_work_outlined,
+                        Icons.edit,
+                        "Edit Profile",
+                        const EditProfileScreen(),
+                      ),
+                      _menuTile(
+                        Icons.fact_check,
                         "Attendance",
                         const AttendanceScreen(),
                       ),
@@ -134,7 +142,7 @@ class ProfileScreen extends StatelessWidget {
                         const WfhScreen(),
                       ),
                       _menuTile(
-                        Icons.receipt_long_outlined,
+                        Icons.timer,
                         "Over Time Requests",
                         const OvertimeRequestsScreen(),
                       ),
@@ -148,7 +156,7 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 20),
 
                     /// ================= LOGOUT =================
-                    _logoutCard(),
+                    _logoutCard(context),
                   ],
                 ),
               ),
@@ -196,7 +204,7 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          /// 🌗 ================= THEME TOGGLE BUTTON =================
+          /// 🌗 ================= THEME TOGGLE =================
           Positioned(
             top: 16,
             right: 16,
@@ -242,10 +250,12 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _logoutCard() {
+  // ================= LOGOUT CARD =================
+
+  Widget _logoutCard(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(Get.context!).cardColor,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8),
@@ -255,9 +265,14 @@ class ProfileScreen extends StatelessWidget {
         leading: const Icon(Icons.power_settings_new, color: Colors.red),
         title: const Text(
           "Logout",
-          style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: Colors.red,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        onTap: () {},
+
+        /// 🔥 POPUP CALL (NO SCREEN)
+        onTap: () => LogoutDialog.show(context),
       ),
     );
   }

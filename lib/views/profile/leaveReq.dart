@@ -1,9 +1,8 @@
-// ignore_for_file: use_build_context_synchronously, deprecated_member_use
+// ignore_for_file: use_build_context_synchronously, deprecated_member_use, unnecessary_underscores
 
 import 'package:flutter/material.dart';
-import 'package:hrportal/constants/colors.dart';
-import 'package:hrportal/service/profile/leaveReqService.dart';
 import 'package:provider/provider.dart';
+import 'package:hrportal/service/profile/leaveReqService.dart';
 
 class LeaveRequestsScreen extends StatefulWidget {
   const LeaveRequestsScreen({super.key});
@@ -13,7 +12,6 @@ class LeaveRequestsScreen extends StatefulWidget {
 }
 
 class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
-  /// Controllers
   final TextEditingController reasonController = TextEditingController();
   final TextEditingController fromDateController = TextEditingController();
   final TextEditingController toDateController = TextEditingController();
@@ -49,10 +47,27 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Leave Requests')),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: theme.cardColor,
+        elevation: 0,
+        title: Text(
+          "Leave Requests",
+          style: theme.textTheme.titleMedium!.copyWith(
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+            color: theme.brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black87,
+          ),
+        ),
+        iconTheme: theme.iconTheme,
+      ),
       body: Consumer<LeaveRequestProvider>(
-        builder: (context, provider, _) {
+        builder: (_, provider, __) {
           return Column(
             children: [
               /// ===== SUBMIT REQUEST BUTTON =====
@@ -64,6 +79,7 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                     onPressed: () => _openApplyLeaveSheet(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -73,7 +89,6 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -85,15 +100,23 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                 child: provider.isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : provider.leaveList.isEmpty
-                    ? const Center(child: Text('No Leave Requests'))
+                    ? Center(
+                        child: Text(
+                          'No Leave Requests',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      )
                     : ListView.builder(
                         padding: const EdgeInsets.all(12),
                         itemCount: provider.leaveList.length,
-                        itemBuilder: (context, index) {
+                        itemBuilder: (_, index) {
                           final item = provider.leaveList[index];
 
+                          final bool approved = item['status'] == 'approved';
+
                           return Card(
-                            elevation: 3,
+                            color: theme.cardColor,
+                            elevation: 2,
                             margin: const EdgeInsets.only(bottom: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -109,10 +132,10 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                                     children: [
                                       Text(
                                         item['leave_type'] ?? '',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        style: theme.textTheme.titleMedium!
+                                            .copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                       ),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
@@ -120,7 +143,7 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                                           vertical: 4,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: item['status'] == 'approved'
+                                          color: approved
                                               ? Colors.green
                                               : Colors.red,
                                           borderRadius: BorderRadius.circular(
@@ -144,14 +167,15 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
 
                                   Row(
                                     children: [
-                                      const Icon(
+                                      Icon(
                                         Icons.date_range,
                                         size: 16,
-                                        color: Colors.blue,
+                                        color: theme.colorScheme.primary,
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
                                         '${item['from_date']} → ${item['to_date']}',
+                                        style: theme.textTheme.bodyMedium,
                                       ),
                                     ],
                                   ),
@@ -160,7 +184,7 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
 
                                   Text(
                                     'Days: ${item['total_days']}',
-                                    style: const TextStyle(
+                                    style: theme.textTheme.bodyMedium!.copyWith(
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -169,19 +193,14 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
 
                                   Text(
                                     'Reason: ${item['reason']}',
-                                    style: const TextStyle(
-                                      color: AppColors.blackPanther,
-                                    ),
+                                    style: theme.textTheme.bodyMedium,
                                   ),
 
                                   const SizedBox(height: 6),
 
                                   Text(
                                     'Applied On: ${item['submitted_at']}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
+                                    style: theme.textTheme.bodySmall,
                                   ),
                                 ],
                               ),
@@ -199,18 +218,19 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
 
   /// ================= BOTTOM SHEET =================
   void _openApplyLeaveSheet(BuildContext context) {
-    final parentContext = context; // ✅ screen context
+    final parentContext = context;
+    final theme = Theme.of(context);
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: theme.cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (sheetContext) {
-        // ✅ bottom sheet context
         return Consumer<LeaveRequestProvider>(
-          builder: (context, provider, _) {
+          builder: (_, provider, __) {
             return Padding(
               padding: EdgeInsets.only(
                 left: 16,
@@ -222,10 +242,9 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       'Apply Leave',
-                      style: TextStyle(
-                        fontSize: 18,
+                      style: theme.textTheme.titleMedium!.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -234,7 +253,7 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
 
                     DropdownButtonFormField<String>(
                       value: selectedLeaveType,
-                      decoration: _boxDecoration('Leave Type'),
+                      decoration: _inputDecoration(theme, 'Leave Type'),
                       items: leaveTypes
                           .map(
                             (e) => DropdownMenuItem(value: e, child: Text(e)),
@@ -247,6 +266,7 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                     const SizedBox(height: 12),
 
                     _boxedDateField(
+                      theme: theme,
                       label: 'From Date',
                       controller: fromDateController,
                       onPick: (d) => fromDate = d,
@@ -255,6 +275,7 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                     const SizedBox(height: 12),
 
                     _boxedDateField(
+                      theme: theme,
                       label: 'To Date',
                       controller: toDateController,
                       onPick: (d) => toDate = d,
@@ -265,12 +286,13 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                     TextField(
                       controller: reasonController,
                       maxLines: 3,
-                      decoration: _boxDecoration('Reason'),
+                      decoration: _inputDecoration(theme, 'Reason'),
                     ),
 
                     const SizedBox(height: 16),
 
                     SizedBox(
+                      width: double.infinity,
                       child: ElevatedButton(
                         onPressed: provider.isSubmitting
                             ? null
@@ -303,11 +325,8 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
 
                                 if (success) {
                                   clearForm();
-
-                                  // ✅ CLOSE BOTTOM SHEET
                                   Navigator.pop(sheetContext);
 
-                                  // ✅ SHOW MESSAGE ON SCREEN
                                   ScaffoldMessenger.of(
                                     parentContext,
                                   ).showSnackBar(
@@ -320,6 +339,10 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                                   );
                                 }
                               },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                        ),
                         child: provider.isSubmitting
                             ? const CircularProgressIndicator(
                                 color: Colors.white,
@@ -338,22 +361,25 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
   }
 
   /// ================= HELPERS =================
-  InputDecoration _boxDecoration(String label) {
+
+  InputDecoration _inputDecoration(ThemeData theme, String label) {
     return InputDecoration(
       labelText: label,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+      filled: true,
+      fillColor: theme.cardColor,
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Colors.grey),
+        borderSide: BorderSide(color: theme.dividerColor),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Colors.blue),
+        borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
       ),
     );
   }
 
   Widget _boxedDateField({
+    required ThemeData theme,
     required String label,
     required TextEditingController controller,
     required Function(DateTime) onPick,
@@ -361,9 +387,9 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
     return TextField(
       controller: controller,
       readOnly: true,
-      decoration: _boxDecoration(
-        label,
-      ).copyWith(suffixIcon: const Icon(Icons.calendar_today)),
+      decoration: _inputDecoration(theme, label).copyWith(
+        suffixIcon: Icon(Icons.calendar_today, color: theme.iconTheme.color),
+      ),
       onTap: () async {
         final picked = await showDatePicker(
           context: context,
