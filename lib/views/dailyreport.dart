@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import 'package:hrportal/service/report/projectservice.dart';
 import 'package:hrportal/service/report/worktypeservice.dart';
 import 'package:hrportal/service/report/submitreportservice.dart';
@@ -16,6 +15,18 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
+  /// ✅ DROPDOWN VALUES (NULLABLE – IMPORTANT)
+  String? selectedProjectId;
+  String? selectedWorkType;
+
+  final DateTime currentDate = DateTime.now();
+
+  final TextEditingController hoursController =
+      TextEditingController(text: "00");
+  final TextEditingController minutesController =
+      TextEditingController(text: "00");
+  final TextEditingController taskController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -30,23 +41,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
       final value = int.tryParse(minutesController.text);
       if (value != null && value > 59) {
         minutesController.text = "59";
-        minutesController.selection = const TextSelection.collapsed(offset: 2);
+        minutesController.selection =
+            const TextSelection.collapsed(offset: 2);
       }
     });
   }
-
-  String selectedProjectId = "";
-  String selectedWorkType = "";
-
-  final DateTime currentDate = DateTime.now();
-
-  final TextEditingController hoursController = TextEditingController(
-    text: "00",
-  );
-  final TextEditingController minutesController = TextEditingController(
-    text: "00",
-  );
-  final TextEditingController taskController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -62,9 +61,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
           style: theme.textTheme.titleMedium!.copyWith(
             fontSize: 30,
             fontWeight: FontWeight.bold,
-            color: theme.brightness == Brightness.dark
-                ? Colors.white
-                : Colors.black87,
           ),
         ),
       ),
@@ -82,6 +78,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   Text("Submit New Report", style: theme.textTheme.titleLarge),
                   const SizedBox(height: 16),
 
+                  /// ---------- PROJECT DROPDOWN ----------
                   _label(theme, "Select Project", Icons.folder),
                   Consumer<ProjectsProvider>(
                     builder: (_, provider, __) {
@@ -93,29 +90,33 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         return const Text("No projects available");
                       }
 
-                      if (selectedProjectId.isEmpty) {
-                        selectedProjectId = provider.projects.first["id"]
-                            .toString();
-                      }
-
                       return DropdownButtonFormField<String>(
-                        value: selectedProjectId,
+                        value: provider.projects.any(
+                                (p) =>
+                                    p["id"].toString() == selectedProjectId)
+                            ? selectedProjectId
+                            : null,
+                        hint: const Text("Select Project"),
                         isDense: true,
                         decoration: _inputDecoration(theme),
                         items: provider.projects.map((project) {
-                          return DropdownMenuItem(
+                          return DropdownMenuItem<String>(
                             value: project["id"].toString(),
                             child: Text(project["name"]),
                           );
                         }).toList(),
-                        onChanged: (val) =>
-                            setState(() => selectedProjectId = val!),
+                        onChanged: (val) {
+                          setState(() {
+                            selectedProjectId = val;
+                          });
+                        },
                       );
                     },
                   ),
 
                   const SizedBox(height: 16),
 
+                  /// ---------- WORK TYPE DROPDOWN ----------
                   _label(theme, "Select Work Type", Icons.work),
                   Consumer<WorkTypesProvider>(
                     builder: (_, provider, __) {
@@ -127,21 +128,26 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         return const Text("No work types available");
                       }
 
-                      if (selectedWorkType.isEmpty) {
-                        selectedWorkType = provider.workTypes.first;
-                      }
-
                       return DropdownButtonFormField<String>(
-                        value: selectedWorkType,
+                        value: provider.workTypes.contains(selectedWorkType)
+                            ? selectedWorkType
+                            : null,
+                        hint: const Text("Select Work Type"),
                         isDense: true,
                         decoration: _inputDecoration(theme),
                         items: provider.workTypes
                             .map(
-                              (e) => DropdownMenuItem(value: e, child: Text(e)),
+                              (e) => DropdownMenuItem<String>(
+                                value: e,
+                                child: Text(e),
+                              ),
                             )
                             .toList(),
-                        onChanged: (val) =>
-                            setState(() => selectedWorkType = val!),
+                        onChanged: (val) {
+                          setState(() {
+                            selectedWorkType = val;
+                          });
+                        },
                       );
                     },
                   ),
@@ -167,16 +173,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                   const SizedBox(height: 20),
 
-                  /// ✅ GREEN BUTTON WITH WHITE TEXT
+                  /// ---------- SUBMIT BUTTON ----------
                   Consumer<SubmitReportProvider>(
                     builder: (_, provider, __) {
                       return SizedBox(
                         width: double.infinity,
                         height: 48,
                         child: ElevatedButton(
-                          onPressed: provider.isSubmitting
-                              ? null
-                              : _submitReport,
+                          onPressed:
+                              provider.isSubmitting ? null : _submitReport,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
                             foregroundColor: Colors.white,
@@ -205,6 +210,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
             const SizedBox(height: 24),
 
+            /// ================= REPORT LIST =================
             Text("Recent Work Reports", style: theme.textTheme.titleMedium),
             const SizedBox(height: 12),
 
@@ -235,7 +241,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                     return _reportTile(
                       theme,
-                      color: _getColorByWorkType(report["work_type"], theme),
+                      color:
+                          _getColorByWorkType(report["work_type"], theme),
                       icon: _getIconByWorkType(report["work_type"]),
                       time: report["report_date"] ?? "",
                       title:
@@ -267,7 +274,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
           decoration: _outlinedBox(theme),
           child: Text(
             "${currentDate.day}/${currentDate.month}/${currentDate.year}",
-            style: theme.textTheme.bodyMedium,
           ),
         ),
       ],
@@ -322,7 +328,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       children: [
         Icon(icon, size: 18, color: theme.colorScheme.primary),
         const SizedBox(width: 8),
-        Text(text, style: theme.textTheme.bodyMedium),
+        Text(text),
       ],
     );
   }
@@ -359,7 +365,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(time, style: theme.textTheme.bodySmall),
-                Text(title, style: theme.textTheme.bodyMedium),
+                Text(title),
                 Text(subtitle, style: theme.textTheme.bodySmall),
               ],
             ),
@@ -379,9 +385,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
+        borderSide:
+            BorderSide(color: theme.colorScheme.primary, width: 1.5),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
     );
   }
 
@@ -402,7 +408,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       case "AMC":
         return Colors.orange;
       default:
-        return theme.iconTheme.color ?? Colors.grey;
+        return Colors.grey;
     }
   }
 
@@ -420,6 +426,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   void _submitReport() async {
+    if (selectedProjectId == null || selectedWorkType == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please select project and work type"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     if (taskController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -430,19 +446,19 @@ class _ReportsScreenState extends State<ReportsScreen> {
       return;
     }
 
-    final int hours = int.tryParse(hoursController.text) ?? 0;
-    final int minutes = int.tryParse(minutesController.text) ?? 0;
-
+    final hours = int.tryParse(hoursController.text) ?? 0;
+    final minutes = int.tryParse(minutesController.text) ?? 0;
     final totalHours = hours + (minutes / 60);
 
-    final success = await context.read<SubmitReportProvider>().submitReport(
-      projectId: selectedProjectId,
-      taskDescription: taskController.text.trim(),
-      hoursWorked: totalHours.toStringAsFixed(2),
-      reportDate:
-          "${currentDate.year}-${currentDate.month.toString().padLeft(2, '0')}-${currentDate.day.toString().padLeft(2, '0')}",
-      workType: selectedWorkType,
-    );
+    final success =
+        await context.read<SubmitReportProvider>().submitReport(
+              projectId: selectedProjectId!,
+              taskDescription: taskController.text.trim(),
+              hoursWorked: totalHours.toStringAsFixed(2),
+              reportDate:
+                  "${currentDate.year}-${currentDate.month.toString().padLeft(2, '0')}-${currentDate.day.toString().padLeft(2, '0')}",
+              workType: selectedWorkType!,
+            );
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -456,8 +472,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
         taskController.clear();
         hoursController.text = "00";
         minutesController.text = "00";
-        selectedProjectId = "";
-        selectedWorkType = "";
+        selectedProjectId = null;
+        selectedWorkType = null;
       });
 
       context.read<ReportsProvider>().fetchReports();
