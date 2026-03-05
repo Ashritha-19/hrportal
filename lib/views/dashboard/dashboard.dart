@@ -16,7 +16,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-
   @override
   void initState() {
     super.initState();
@@ -33,24 +32,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     final provider = context.watch<DashboardProvider>();
     final theme = Theme.of(context);
 
     // 🔔 SHOW SNACKBAR MESSAGE
     if (provider.message != null && provider.message!.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(provider.message!)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(provider.message!)));
         provider.clearMessage();
       });
     }
 
     if (provider.isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (provider.dashboardData == null) {
@@ -66,7 +62,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final data = provider.dashboardData!;
     final employee = data["employee"];
-    final attendance = data["attendance"];
+    final attendance = data["attendance"] ?? {};
     final holidays = data["upcoming_holidays"] ?? [];
     final birthdays = data["upcoming_birthdays"] ?? [];
 
@@ -90,9 +86,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          actions: const [
-            NotificationIcon(),
-          ],
+          actions: const [NotificationIcon()],
         ),
 
         body: SingleChildScrollView(
@@ -207,7 +201,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onPressed: provider.isDayCompleted || provider.isLoading
                   ? null
                   : () async {
-
                       print("🟢 Clock Button Clicked");
 
                       final result = await Navigator.push(
@@ -227,8 +220,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 backgroundColor: provider.isDayCompleted
                     ? Colors.grey
                     : provider.isClockedIn
-                        ? Colors.red
-                        : Colors.green,
+                    ? Colors.red
+                    : Colors.green,
                 foregroundColor: Colors.white,
               ),
 
@@ -245,8 +238,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       provider.isDayCompleted
                           ? "Day Completed"
                           : provider.isClockedIn
-                              ? "Check Out"
-                              : "Check In",
+                          ? "Check Out"
+                          : "Check In",
                       style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 12,
@@ -295,14 +288,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(14),
-            child: Text("Upcoming Holidays",
-                style: theme.textTheme.titleMedium),
+            child: Text(
+              "Upcoming Holidays",
+              style: theme.textTheme.titleMedium,
+            ),
           ),
           Divider(color: theme.dividerColor),
           ...holidays.map(
             (holiday) => ListTile(
-              leading: Icon(Icons.beach_access,
-                  color: theme.colorScheme.primary),
+              leading: Icon(
+                Icons.beach_access,
+                color: theme.colorScheme.primary,
+              ),
               title: Text(holiday["title"].trim()),
               subtitle: Text(holiday["holiday_date"]),
             ),
@@ -322,14 +319,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(14),
-            child: Text("Upcoming Birthdays",
-                style: theme.textTheme.titleMedium),
+            child: Text(
+              "Upcoming Birthdays",
+              style: theme.textTheme.titleMedium,
+            ),
           ),
           Divider(color: theme.dividerColor),
           ...birthdays.map(
             (b) => ListTile(
-              leading:
-                  Icon(Icons.cake, color: theme.colorScheme.primary),
+              leading: Icon(Icons.cake, color: theme.colorScheme.primary),
               title: Text(b["empName"]),
               subtitle: Text(b["empDob"]),
             ),
@@ -358,16 +356,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.exit_to_app,
-                    size: 48, color: Colors.redAccent),
+                const Icon(
+                  Icons.exit_to_app,
+                  size: 48,
+                  color: Colors.redAccent,
+                ),
                 const SizedBox(height: 16),
-                Text("Exit App",
-                    style: theme.textTheme.titleLarge!
-                        .copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  "Exit App",
+                  style: theme.textTheme.titleLarge!.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 10),
-                Text("Are you sure you want to exit?",
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium),
+                Text(
+                  "Are you sure you want to exit?",
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
                 const SizedBox(height: 24),
                 Row(
                   children: [
@@ -402,14 +408,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   BoxDecoration _cardDecoration(ThemeData theme) => BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: theme.shadowColor.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      );
+    color: theme.cardColor,
+    borderRadius: BorderRadius.circular(12),
+    boxShadow: [
+      BoxShadow(
+        color: theme.shadowColor.withOpacity(0.08),
+        blurRadius: 8,
+        offset: const Offset(0, 4),
+      ),
+    ],
+  );
 }

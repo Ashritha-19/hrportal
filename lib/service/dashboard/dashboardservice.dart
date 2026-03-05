@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hrportal/constants/apiconstants.dart';
 
 class DashboardProvider extends ChangeNotifier {
-
   bool isLoading = true;
   Map<String, dynamic>? dashboardData;
 
@@ -25,7 +24,9 @@ class DashboardProvider extends ChangeNotifier {
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token");
+
     print("🔑 TOKEN FROM STORAGE => $token");
+
     return token;
   }
 
@@ -36,17 +37,17 @@ class DashboardProvider extends ChangeNotifier {
   // ================= FETCH DASHBOARD =================
 
   Future<void> fetchDashboard() async {
-
     print("🟡 fetchDashboard() called");
 
     isLoading = true;
     notifyListeners();
 
     final token = await _getToken();
+
     if (token == null) {
-      print("❌ Token null");
-      isLoading = false;
+      print("❌ Token missing");
       dashboardData = null;
+      isLoading = false;
       notifyListeners();
       return;
     }
@@ -56,7 +57,6 @@ class DashboardProvider extends ChangeNotifier {
     );
 
     try {
-
       final response = await http.get(
         url,
         headers: {
@@ -68,21 +68,49 @@ class DashboardProvider extends ChangeNotifier {
       print("📥 DASHBOARD STATUS => ${response.statusCode}");
       print("📥 DASHBOARD BODY => ${response.body}");
 
-      if (response.statusCode == 200) {
+      if (response.statusCode != 200) {
+        dashboardData = null;
+        isLoading = false;
+        notifyListeners();
+        return;
+      }
 
-        final decoded = jsonDecode(response.body);
-        dashboardData = decoded["data"];
+      final decoded = jsonDecode(response.body);
 
-        final attendance = dashboardData!["attendance"];
+      if (decoded["status"] != true) {
+        dashboardData = null;
+        isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      dashboardData = decoded["data"];
+
+      final attendance = dashboardData?["attendance"];
+
+      // ================= NO ATTENDANCE =================
+
+      if (attendance == null) {
+        print("🟡 No attendance record for today");
+
+        isClockedIn = false;
+        isDayCompleted = false;
+
+        workedDuration = Duration.zero;
+
+        _timer?.cancel();
+      }
+      // ================= ATTENDANCE EXISTS =================
+      else {
         final checkIn = attendance["check_in"];
         final checkOut = attendance["check_out"];
 
         print("🕒 checkIn: $checkIn");
         print("🕒 checkOut: $checkOut");
 
-        // ================= CLOCKED IN =================
-        if (checkIn != null && checkOut == null) {
+        // ===== USER CLOCKED IN =====
 
+        if (checkIn != null && checkOut == null) {
           print("🟢 User currently CLOCKED IN");
 
           isClockedIn = true;
@@ -90,10 +118,8 @@ class DashboardProvider extends ChangeNotifier {
 
           _startFromApiTime(checkIn);
         }
-
-        // ================= DAY COMPLETED =================
+        // ===== DAY COMPLETED =====
         else if (checkIn != null && checkOut != null) {
-
           print("🔴 Day completed");
 
           isClockedIn = false;
@@ -126,29 +152,23 @@ class DashboardProvider extends ChangeNotifier {
 
           workedDuration = checkOutTime.difference(checkInTime);
 
-          print("🕒 Final Worked Duration: $workedDuration");
+          print("🕒 Final worked duration: $workedDuration");
         }
-
-        // ================= NOT CHECKED IN =================
+        // ===== NOT CHECKED IN =====
         else {
-
           print("🟡 Not checked in yet");
 
           isClockedIn = false;
           isDayCompleted = false;
 
-          _timer?.cancel();
           workedDuration = Duration.zero;
+
+          _timer?.cancel();
         }
-
-      } else {
-
-        print("❌ Dashboard fetch failed");
-        dashboardData = null;
       }
-
     } catch (e) {
       print("🔥 DASHBOARD ERROR => $e");
+
       dashboardData = null;
     }
 
@@ -159,7 +179,6 @@ class DashboardProvider extends ChangeNotifier {
   // ================= TIMER FROM API =================
 
   void _startFromApiTime(String checkIn) {
-
     print("⏱ Starting timer from API time");
 
     final now = DateTime.now();
@@ -176,15 +195,10 @@ class DashboardProvider extends ChangeNotifier {
 
     workedDuration = now.difference(checkInTime);
 
-    print("⏱ Initial workedDuration: $workedDuration");
-
     _startTimer();
   }
 
   void _startTimer() {
-
-    print("▶️ Timer started");
-
     _timer?.cancel();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -200,7 +214,6 @@ class DashboardProvider extends ChangeNotifier {
     double? longitude,
     String? address,
   }) async {
-
     print("🟢 Confirm button clicked");
 
     if (isDayCompleted) {
@@ -210,6 +223,7 @@ class DashboardProvider extends ChangeNotifier {
     }
 
     final token = await _getToken();
+
     if (token == null) {
       print("❌ No token");
       return;
@@ -224,7 +238,6 @@ class DashboardProvider extends ChangeNotifier {
     print("📤 Calling API => $url");
 
     try {
-
       final response = await http.post(
         url,
         headers: {
@@ -242,54 +255,44 @@ class DashboardProvider extends ChangeNotifier {
       print("📥 ATTENDANCE BODY => ${response.body}");
 
       if (response.statusCode == 200) {
-
         final decoded = jsonDecode(response.body);
 
         if (decoded["status"] == true) {
-
           message = decoded["message"];
-          print("✅ $message");
 
           if (!isClockedIn) {
-
             print("🟢 CHECK IN SUCCESS");
 
             isClockedIn = true;
             isDayCompleted = false;
 
             workedDuration = Duration.zero;
+
             _startTimer();
-
           } else {
-
             print("🔴 CHECK OUT SUCCESS");
 
             isClockedIn = false;
             isDayCompleted = true;
 
             _timer?.cancel();
-
-            print("🕒 Final worked time kept: $workedDuration");
           }
 
           notifyListeners();
 
-          await fetchDashboard();      
+          await fetchDashboard();
         }
-
       } else if (response.statusCode == 400) {
-
         final decoded = jsonDecode(response.body);
+
         message = decoded["messages"]["error"];
-        print("❌ $message");
+
         notifyListeners();
-
       } else {
-
         message = "Something went wrong";
+
         notifyListeners();
       }
-
     } catch (e) {
       print("🔥 Attendance API Error => $e");
     }
@@ -299,6 +302,7 @@ class DashboardProvider extends ChangeNotifier {
 
   String format(Duration d) {
     String two(int n) => n.toString().padLeft(2, '0');
+
     return "${two(d.inHours)}:${two(d.inMinutes % 60)}:${two(d.inSeconds % 60)}";
   }
 
