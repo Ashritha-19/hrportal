@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously, unnecessary_underscores
 
 import 'package:flutter/material.dart';
+import 'package:hrportal/views/notifications/notificationIcon.dart';
 import 'package:provider/provider.dart';
 import 'package:hrportal/service/report/projectservice.dart';
 import 'package:hrportal/service/report/worktypeservice.dart';
@@ -21,10 +22,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   final DateTime currentDate = DateTime.now();
 
-  final TextEditingController hoursController =
-      TextEditingController(text: "00");
-  final TextEditingController minutesController =
-      TextEditingController(text: "00");
+  final TextEditingController hoursController = TextEditingController(
+    text: "00",
+  );
+  final TextEditingController minutesController = TextEditingController(
+    text: "00",
+  );
   final TextEditingController taskController = TextEditingController();
 
   @override
@@ -41,8 +44,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       final value = int.tryParse(minutesController.text);
       if (value != null && value > 59) {
         minutesController.text = "59";
-        minutesController.selection =
-            const TextSelection.collapsed(offset: 2);
+        minutesController.selection = const TextSelection.collapsed(offset: 2);
       }
     });
   }
@@ -54,15 +56,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: theme.cardColor,
         elevation: 0,
+        titleSpacing: 16,
         title: Text(
           "Daily Reports",
           style: theme.textTheme.titleMedium!.copyWith(
-            fontSize: 30,
+            fontSize: 26,
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [NotificationIcon()],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -91,9 +96,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       }
 
                       return DropdownButtonFormField<String>(
-                        value: provider.projects.any(
-                                (p) =>
-                                    p["id"].toString() == selectedProjectId)
+                        value:
+                            provider.projects.any(
+                              (p) => p["id"].toString() == selectedProjectId,
+                            )
                             ? selectedProjectId
                             : null,
                         hint: const Text("Select Project"),
@@ -180,8 +186,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         width: double.infinity,
                         height: 48,
                         child: ElevatedButton(
-                          onPressed:
-                              provider.isSubmitting ? null : _submitReport,
+                          onPressed: provider.isSubmitting
+                              ? null
+                              : _submitReport,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
                             foregroundColor: Colors.white,
@@ -241,8 +248,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                     return _reportTile(
                       theme,
-                      color:
-                          _getColorByWorkType(report["work_type"], theme),
+                      color: _getColorByWorkType(report["work_type"], theme),
                       icon: _getIconByWorkType(report["work_type"]),
                       time: report["report_date"] ?? "",
                       title:
@@ -385,8 +391,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide:
-            BorderSide(color: theme.colorScheme.primary, width: 1.5),
+        borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
       ),
     );
   }
@@ -450,15 +455,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final minutes = int.tryParse(minutesController.text) ?? 0;
     final totalHours = hours + (minutes / 60);
 
-    final success =
-        await context.read<SubmitReportProvider>().submitReport(
-              projectId: selectedProjectId!,
-              taskDescription: taskController.text.trim(),
-              hoursWorked: totalHours.toStringAsFixed(2),
-              reportDate:
-                  "${currentDate.year}-${currentDate.month.toString().padLeft(2, '0')}-${currentDate.day.toString().padLeft(2, '0')}",
-              workType: selectedWorkType!,
-            );
+    final success = await context.read<SubmitReportProvider>().submitReport(
+      projectId: selectedProjectId!,
+      taskDescription: taskController.text.trim(),
+      hoursWorked: totalHours.toStringAsFixed(2),
+      reportDate:
+          "${currentDate.year}-${currentDate.month.toString().padLeft(2, '0')}-${currentDate.day.toString().padLeft(2, '0')}",
+      workType: selectedWorkType!,
+    );
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(

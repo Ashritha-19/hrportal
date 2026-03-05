@@ -78,7 +78,7 @@ class ProfileProvider extends ChangeNotifier {
       if (token == null) return false;
 
       final url =
-          'https://hrportal.eparivartan.com/api/v1/employee/profile/update';
+          Apiconstants.baseUrl + Apiconstants.updateProfileEndpoint;
 
       final request = http.MultipartRequest('POST', Uri.parse(url));
 

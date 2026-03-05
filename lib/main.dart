@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hrportal/service/notificationservice.dart';
 import 'package:hrportal/service/profile/editProfileService.dart';
+import 'package:hrportal/service/profile/kanbanService.dart';
 import 'package:provider/provider.dart';
 import 'package:hrportal/constants/approutes.dart';
 import 'package:hrportal/service/loginservice.dart';
-import 'package:hrportal/service/dashboardservice.dart';
+import 'package:hrportal/service/dashboard/dashboardservice.dart';
 import 'package:hrportal/service/profile/theme.dart';
 import 'package:hrportal/service/profile/attendanceService.dart';
 import 'package:hrportal/service/profile/leaveReqService.dart';
@@ -42,6 +44,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AttendanceProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => AttendanceProvider()),
+        ChangeNotifierProvider(create: (_) => KanbanProvider()),
       ],
 
       /// 👇 IMPORTANT PART

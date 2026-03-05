@@ -9,7 +9,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AttendanceProvider extends ChangeNotifier {
   bool isLoading = false;
   bool isSubmitting = false;
-
   List attendanceList = [];
 
   /// 🔑 Token (used ONLY inside API calls)

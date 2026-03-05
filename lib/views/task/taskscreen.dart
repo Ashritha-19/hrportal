@@ -1,8 +1,8 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:hrportal/views/notifications/notificationIcon.dart';
 import 'package:provider/provider.dart';
-
 import 'package:hrportal/service/tasksService.dart';
 import 'package:hrportal/views/task/taskcard.dart';
 
@@ -35,18 +35,21 @@ class _TasksScreenState extends State<TasksScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: theme.cardColor,
         elevation: 0,
+        titleSpacing: 16,
         title: Text(
           "My Tasks",
           style: theme.textTheme.titleMedium!.copyWith(
-            fontSize: 30,
+            fontSize: 26,
             fontWeight: FontWeight.bold,
             color: theme.brightness == Brightness.dark
                 ? Colors.white
                 : Colors.black87,
           ),
         ),
+        actions: [NotificationIcon()],
       ),
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())

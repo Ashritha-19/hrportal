@@ -7,9 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TaskProvider extends ChangeNotifier {
-  // ===============================
-  // STATE
-  // ===============================
+
   bool isLoading = false;
   List<dynamic> tasks = [];
 

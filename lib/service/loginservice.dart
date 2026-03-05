@@ -16,8 +16,6 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {final url = Uri.parse(Apiconstants.baseUrl + Apiconstants.loginEndpoint);
-      
-
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},

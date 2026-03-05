@@ -2,19 +2,18 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hrportal/service/profile/kanbanService.dart';
 import 'package:hrportal/views/profile/editProfile.dart';
+import 'package:hrportal/views/profile/kanban.dart';
 import 'package:hrportal/views/profile/logout.dart';
 import 'package:provider/provider.dart';
-
-import 'package:hrportal/service/dashboardservice.dart';
+import 'package:hrportal/service/dashboard/dashboardservice.dart';
 import 'package:hrportal/service/profile/theme.dart';
-
 import 'package:hrportal/views/profile/attendance.dart';
 import 'package:hrportal/views/profile/leaveReq.dart';
 import 'package:hrportal/views/profile/overTimeReq.dart';
 import 'package:hrportal/views/profile/payslips.dart';
 import 'package:hrportal/views/profile/wfh.dart';
-
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -151,6 +150,14 @@ class ProfileScreen extends StatelessWidget {
                         "Payslips",
                         const PayslipsScreen(),
                       ),
+                      _menuTile(
+                        Icons.view_kanban_outlined, // ✅ Better icon
+                        "Kanban Board",
+                        ChangeNotifierProvider(
+                          create: (_) => KanbanProvider(),
+                          child: const KanbanBoardScreen(),
+                        ),
+                      ),
                     ]),
 
                     const SizedBox(height: 20),
@@ -183,7 +190,7 @@ class ProfileScreen extends StatelessWidget {
                       backgroundImage: employee?["profile_image"] != null
                           ? NetworkImage(employee["profile_image"])
                           : const AssetImage("assets/profile.png")
-                              as ImageProvider,
+                                as ImageProvider,
                     ),
                   ),
                   Positioned(
@@ -265,10 +272,7 @@ class ProfileScreen extends StatelessWidget {
         leading: const Icon(Icons.power_settings_new, color: Colors.red),
         title: const Text(
           "Logout",
-          style: TextStyle(
-            color: Colors.red,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
         ),
 
         /// 🔥 POPUP CALL (NO SCREEN)

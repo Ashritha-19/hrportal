@@ -2,8 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hrportal/service/notificationservice.dart';
+import 'package:hrportal/views/dashboard/checkinVerification.dart';
+import 'package:hrportal/views/notifications/notificationIcon.dart';
 import 'package:provider/provider.dart';
-import 'package:hrportal/service/dashboardservice.dart';
+import 'package:hrportal/service/dashboard/dashboardservice.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -13,9 +16,16 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+
   @override
   void initState() {
     super.initState();
+
+    Future.microtask(() {
+      print("🏠 Dashboard loaded → fetch notifications");
+      context.read<NotificationProvider>().fetchNotifications();
+    });
+
     Future.microtask(() {
       context.read<DashboardProvider>().fetchDashboard();
     });
@@ -23,11 +33,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     final provider = context.watch<DashboardProvider>();
     final theme = Theme.of(context);
 
+    // 🔔 SHOW SNACKBAR MESSAGE
+    if (provider.message != null && provider.message!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(provider.message!)),
+        );
+        provider.clearMessage();
+      });
+    }
+
     if (provider.isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
     if (provider.dashboardData == null) {
@@ -48,7 +71,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final birthdays = data["upcoming_birthdays"] ?? [];
 
     return PopScope(
-      canPop: false, // ⛔ prevent default back
+      canPop: false,
       onPopInvoked: (didPop) async {
         if (didPop) return;
         _showExitPopup(context);
@@ -56,19 +79,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           backgroundColor: theme.cardColor,
           elevation: 0,
+          titleSpacing: 16,
           title: Text(
             "Dashboard",
             style: theme.textTheme.titleMedium!.copyWith(
-              fontSize: 30,
+              fontSize: 26,
               fontWeight: FontWeight.bold,
-              color: theme.brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black87,
             ),
           ),
+          actions: const [
+            NotificationIcon(),
+          ],
         ),
+
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -122,7 +148,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// ⏱ CLOCK CARD
+  // ================= INFO CARD =================
+
+  Widget _infoCard(
+    ThemeData theme,
+    String title,
+    String value,
+    IconData icon, {
+    String? sub,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: _cardDecoration(theme),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: theme.colorScheme.primary, size: 20),
+                const SizedBox(width: 8),
+                Text(title, style: theme.textTheme.bodySmall),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(value, style: theme.textTheme.titleMedium),
+            if (sub != null) ...[
+              const SizedBox(height: 4),
+              Text(sub, style: theme.textTheme.bodySmall),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ================= CLOCK CARD =================
+
   Widget _clockCard(DashboardProvider provider, ThemeData theme) {
     return Expanded(
       child: Container(
@@ -133,33 +195,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Text("Today's Work Time", style: theme.textTheme.bodySmall),
             const SizedBox(height: 6),
+
             Text(
               provider.format(provider.workedDuration),
               style: theme.textTheme.titleMedium,
             ),
+
             const SizedBox(height: 10),
+
             ElevatedButton(
-              onPressed: provider.toggleClock,
+              onPressed: provider.isDayCompleted || provider.isLoading
+                  ? null
+                  : () async {
+
+                      print("🟢 Clock Button Clicked");
+
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const CheckInVerificationScreen(),
+                        ),
+                      );
+
+                      if (result == true) {
+                        print("🔄 Refreshing dashboard after verification");
+                        provider.fetchDashboard();
+                      }
+                    },
+
               style: ElevatedButton.styleFrom(
-                backgroundColor: provider.isClockedIn
-                    ? Colors.red
-                    : Colors.green,
+                backgroundColor: provider.isDayCompleted
+                    ? Colors.grey
+                    : provider.isClockedIn
+                        ? Colors.red
+                        : Colors.green,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
               ),
-              child: Text(
-                provider.isClockedIn ? "Check Out" : "Check In",
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 18,
-                ),
-              ),
+
+              child: provider.isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(
+                      provider.isDayCompleted
+                          ? "Day Completed"
+                          : provider.isClockedIn
+                              ? "Check Out"
+                              : "Check In",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                      ),
+                    ),
             ),
           ],
         ),
@@ -167,7 +259,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// 👤 PROFILE CARD
+  // ================= PROFILE CARD =================
+
   Widget _profileCard(Map employee, ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -192,7 +285,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// 🎉 UPCOMING HOLIDAYS
+  // ================= HOLIDAYS =================
+
   Widget _upcomingHolidays(List holidays, ThemeData theme) {
     return Container(
       decoration: _cardDecoration(theme),
@@ -201,18 +295,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(14),
-            child: Text(
-              "Upcoming Holidays",
-              style: theme.textTheme.titleMedium,
-            ),
+            child: Text("Upcoming Holidays",
+                style: theme.textTheme.titleMedium),
           ),
           Divider(color: theme.dividerColor),
           ...holidays.map(
             (holiday) => ListTile(
-              leading: Icon(
-                Icons.beach_access,
-                color: theme.colorScheme.primary,
-              ),
+              leading: Icon(Icons.beach_access,
+                  color: theme.colorScheme.primary),
               title: Text(holiday["title"].trim()),
               subtitle: Text(holiday["holiday_date"]),
             ),
@@ -222,7 +312,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// 🎂 UPCOMING BIRTHDAYS
+  // ================= BIRTHDAYS =================
+
   Widget _upcomingBirthdays(List birthdays, ThemeData theme) {
     return Container(
       decoration: _cardDecoration(theme),
@@ -231,15 +322,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(14),
-            child: Text(
-              "Upcoming Birthdays",
-              style: theme.textTheme.titleMedium,
-            ),
+            child: Text("Upcoming Birthdays",
+                style: theme.textTheme.titleMedium),
           ),
           Divider(color: theme.dividerColor),
           ...birthdays.map(
             (b) => ListTile(
-              leading: Icon(Icons.cake, color: theme.colorScheme.primary),
+              leading:
+                  Icon(Icons.cake, color: theme.colorScheme.primary),
               title: Text(b["empName"]),
               subtitle: Text(b["empDob"]),
             ),
@@ -248,6 +338,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+
+  // ================= EXIT POPUP =================
 
   void _showExitPopup(BuildContext context) {
     final theme = Theme.of(context);
@@ -266,26 +358,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.exit_to_app, size: 48, color: Colors.redAccent),
+                const Icon(Icons.exit_to_app,
+                    size: 48, color: Colors.redAccent),
                 const SizedBox(height: 16),
-
-                Text(
-                  "Exit App",
-                  style: theme.textTheme.titleLarge!.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
+                Text("Exit App",
+                    style: theme.textTheme.titleLarge!
+                        .copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
-
-                Text(
-                  "Are you sure you want to exit?",
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium,
-                ),
-
+                Text("Are you sure you want to exit?",
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium),
                 const SizedBox(height: 24),
-
                 Row(
                   children: [
                     Expanded(
@@ -303,7 +386,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         onPressed: () {
                           Navigator.pop(context);
-                          SystemNavigator.pop(); // 🔥 CLOSE APP
+                          SystemNavigator.pop();
                         },
                         child: const Text("Yes"),
                       ),
@@ -318,46 +401,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// ℹ️ INFO CARD
-  Widget _infoCard(
-    ThemeData theme,
-    String title,
-    String value,
-    IconData icon, {
-    String? sub,
-  }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: _cardDecoration(theme),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, size: 18, color: theme.colorScheme.primary),
-                const SizedBox(width: 6),
-                Text(title, style: theme.textTheme.bodySmall),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(value, style: theme.textTheme.titleMedium),
-            if (sub != null) Text(sub, style: theme.textTheme.bodySmall),
-          ],
-        ),
-      ),
-    );
-  }
-
   BoxDecoration _cardDecoration(ThemeData theme) => BoxDecoration(
-    color: theme.cardColor,
-    borderRadius: BorderRadius.circular(12),
-    boxShadow: [
-      BoxShadow(
-        color: theme.shadowColor.withOpacity(0.08),
-        blurRadius: 8,
-        offset: const Offset(0, 4),
-      ),
-    ],
-  );
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      );
 }

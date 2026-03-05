@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hrportal/constants/colors.dart';
 import 'package:hrportal/views/dailyreport.dart';
-import 'package:hrportal/views/dashboard.dart';
+import 'package:hrportal/views/dashboard/dashboard.dart';
 import 'package:hrportal/views/profile/profile.dart';
 import 'package:hrportal/views/task/taskscreen.dart';
 

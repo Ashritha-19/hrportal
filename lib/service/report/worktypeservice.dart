@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:hrportal/constants/apiconstants.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,10 +24,14 @@ class WorkTypesProvider extends ChangeNotifier {
         return;
       }
 
+      final url = Uri.parse(
+        Apiconstants.baseUrl + Apiconstants.workTypesEndpoint,
+      );
+
+      print("➡️ Reports API URL: $url");
+
       final response = await http.get(
-        Uri.parse(
-          "https://hrportal.eparivartan.com/api/v1/employee/work-types",
-        ),
+        url,
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer $token",
@@ -37,8 +42,7 @@ class WorkTypesProvider extends ChangeNotifier {
         final decoded = jsonDecode(response.body);
         final List data = decoded["data"];
 
-        workTypes =
-            data.map<String>((e) => e["name"].toString()).toList();
+        workTypes = data.map<String>((e) => e["name"].toString()).toList();
       } else {
         workTypes = [];
       }

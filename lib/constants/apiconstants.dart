@@ -19,4 +19,9 @@ class Apiconstants {
   static const String attendanceEndpoint = "attendance";
   static const String attendanceReasonEndpoint = "attendance/reason";
   static const String profile = "profile";
+  static const String updateProfileEndpoint = "profile/update";
+  static const String kanban = "kanban";
+  static const String notificationsEndpoint = "notifications";
+
+
 }
