@@ -24,6 +24,7 @@ dependencies:
   intl: ^0.20.2
   local_auth: ^3.0.0
   drag_and_drop_lists: ^0.4.2
+  file_picker: ^10.3.10
 
 dev_dependencies:
   flutter_test:

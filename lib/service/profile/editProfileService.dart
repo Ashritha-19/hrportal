@@ -18,6 +18,8 @@ class ProfileProvider extends ChangeNotifier {
   String contact = '';
   String currentAddress = '';
   String permanentAddress = '';
+  String empIdProof = '';
+  String empAddressProof = '';
 
   /// ================= GET PROFILE =================
   Future<void> fetchProfile() async {
@@ -50,6 +52,9 @@ class ProfileProvider extends ChangeNotifier {
         contact = json['empContact'] ?? '';
         currentAddress = json['empCurrentaddr'] ?? '';
         permanentAddress = json['empPermanentaddr'] ?? '';
+
+        empIdProof = json['empIdProof'] ?? '';
+        empAddressProof = json['empAddressProof'] ?? '';
       }
     } catch (e) {
       print('❌ FETCH ERROR => $e');
@@ -77,8 +82,7 @@ class ProfileProvider extends ChangeNotifier {
 
       if (token == null) return false;
 
-      final url =
-          Apiconstants.baseUrl + Apiconstants.updateProfileEndpoint;
+      final url = Apiconstants.baseUrl + Apiconstants.updateProfileEndpoint;
 
       final request = http.MultipartRequest('POST', Uri.parse(url));
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hrportal/service/notificationservice.dart';
+import 'package:hrportal/service/profile/documentService.dart';
 import 'package:hrportal/service/profile/editProfileService.dart';
 import 'package:hrportal/service/profile/kanbanService.dart';
 import 'package:provider/provider.dart';
@@ -47,6 +48,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => AttendanceProvider()),
         ChangeNotifierProvider(create: (_) => KanbanProvider()),
+        ChangeNotifierProvider(create: (_) => DocumentProvider()),
       ],
 
       /// 👇 IMPORTANT PART

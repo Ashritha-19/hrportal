@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hrportal/service/profile/kanbanService.dart';
+import 'package:hrportal/views/profile/document/document.dart';
 import 'package:hrportal/views/profile/editProfile.dart';
 import 'package:hrportal/views/profile/kanban.dart';
 import 'package:hrportal/views/profile/logout.dart';
@@ -157,6 +158,11 @@ class ProfileScreen extends StatelessWidget {
                           create: (_) => KanbanProvider(),
                           child: const KanbanBoardScreen(),
                         ),
+                      ),
+                       _menuTile(
+                        Icons.edit_document,
+                        "Documents",
+                        const DocumentsScreen(),
                       ),
                     ]),
 
