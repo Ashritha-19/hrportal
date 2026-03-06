@@ -7,6 +7,10 @@
     <!-- 🌐 INTERNET -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
+    <!-- 📷 IMAGE PERMISSIONS -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
     <!-- 🔐 BIOMETRIC -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
     <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
@@ -37,9 +41,16 @@
 
         </activity>
 
+        <!-- ✅ REQUIRED FOR IMAGE CROPPER -->
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
     </application>
 
     <queries>

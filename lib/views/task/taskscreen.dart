@@ -1,7 +1,9 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:hrportal/constants/companyLogo.dart';
 import 'package:hrportal/views/notifications/notificationIcon.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:hrportal/service/tasksService.dart';
 import 'package:hrportal/views/task/taskcard.dart';
@@ -25,6 +27,12 @@ class _TasksScreenState extends State<TasksScreen> {
     });
   }
 
+  /// 📅 Date format
+  String formatDate(String date) {
+    final parsed = DateTime.parse(date);
+    return DateFormat('dd MMM yyyy').format(parsed);
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TaskProvider>();
@@ -34,23 +42,21 @@ class _TasksScreenState extends State<TasksScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: theme.cardColor,
-        elevation: 0,
-        titleSpacing: 16,
-        title: Text(
-          "My Tasks",
-          style: theme.textTheme.titleMedium!.copyWith(
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-            color: theme.brightness == Brightness.dark
-                ? Colors.white
-                : Colors.black87,
+      appBar:  AppBar(
+          leading: const CompanyLogoIcon(size: 28),
+          automaticallyImplyLeading: false,
+          backgroundColor: theme.cardColor,
+          elevation: 0,
+          titleSpacing: 16,
+          title: Text(
+            "My Tasks",
+            style: theme.textTheme.titleMedium!.copyWith(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          actions: const [NotificationIcon()],
         ),
-        actions: [NotificationIcon()],
-      ),
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : provider.tasks.isEmpty
@@ -68,9 +74,21 @@ class _TasksScreenState extends State<TasksScreen> {
                 return TaskCard(
                   title: task['title'] ?? '',
                   project: task['project_name'] ?? '',
-                  date: task['task_date'] ?? '',
-                  priority: task['priority'] ?? '',
-                  status: task['status'] ?? '',
+                  date: formatDate(task['task_date'] ?? ''),
+
+                  priority:
+                      task['priority'] != null && task['priority'].isNotEmpty
+                      ? task['priority'][0].toUpperCase() +
+                            task['priority'].substring(1)
+                      : '',
+
+                  status: task['status'] == 'todo'
+                      ? 'To Do'
+                      : task['status'] == 'inprogress'
+                      ? 'In Progress'
+                      : task['status'] == 'done'
+                      ? 'Done'
+                      : '',
                 );
               },
             ),

@@ -1,6 +1,7 @@
 class Apiconstants {
   static const String baseUrl =
       "https://hrportal.eparivartan.com/api/v1/employee/";
+  static const String fileUrl = "https://hrportal.eparivartan.com/";
 
   static const String loginEndpoint = "login";
   static const String dashboardEndpoint = "dashboard";
@@ -22,6 +23,6 @@ class Apiconstants {
   static const String updateProfileEndpoint = "profile/update";
   static const String kanban = "kanban";
   static const String notificationsEndpoint = "notifications";
-
-
+  static const String uploadDocumentsEndpoint = "profile/upload-documents";
+  static const String uploadProfileImageEndpoint = "profile/upload-image";
 }

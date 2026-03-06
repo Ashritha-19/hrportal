@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously, unnecessary_underscores
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:hrportal/service/profile/wfhservice.dart';
 
@@ -30,6 +31,12 @@ class _WfhScreenState extends State<WfhScreen> {
     super.dispose();
   }
 
+    /// 📅 Date format
+  String formatDate(String date) {
+    final parsed = DateTime.parse(date);
+    return DateFormat('dd MMM yyyy').format(parsed);
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<WfhProvider>();
@@ -43,7 +50,7 @@ class _WfhScreenState extends State<WfhScreen> {
         title: Text(
           "Work From Home Requests",
           style: theme.textTheme.titleMedium!.copyWith(
-            fontSize: 30,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: theme.brightness == Brightness.dark
                 ? Colors.white
@@ -121,7 +128,7 @@ class _WfhScreenState extends State<WfhScreen> {
           _infoRow(
             theme,
             "Date Range",
-            "${item['from_date']} - ${item['to_date']}",
+            "${formatDate(item['from_date'])} - ${formatDate(item['to_date'])}",
           ),
           _infoRow(
             theme,
@@ -129,7 +136,7 @@ class _WfhScreenState extends State<WfhScreen> {
             item['status'],
             valueWidget: _statusChip(item['status']),
           ),
-          _infoRow(theme, "Applied On", item['created_at']),
+          _infoRow(theme, "Applied On", formatDate(item['created_at'])),
           _infoRow(
             theme,
             "Admin Remarks",

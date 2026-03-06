@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../service/profile/kanbanService.dart';
 
@@ -12,7 +13,6 @@ class KanbanBoardScreen extends StatefulWidget {
 }
 
 class _KanbanBoardScreenState extends State<KanbanBoardScreen> {
-
   @override
   void initState() {
     super.initState();
@@ -22,13 +22,30 @@ class _KanbanBoardScreenState extends State<KanbanBoardScreen> {
     });
   }
 
+    /// 📅 Date format
+  String formatDate(String date) {
+    final parsed = DateTime.parse(date);
+    return DateFormat('dd MMM yyyy').format(parsed);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text("Kanban Board")),
+      appBar: AppBar(
+        title: Text(
+          "Kanban Board",
+          style: theme.textTheme.titleMedium!.copyWith(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: theme.brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black87,
+          ),
+        ),
+      ),
       body: Consumer<KanbanProvider>(
         builder: (context, provider, _) {
-
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -48,13 +65,8 @@ class _KanbanBoardScreenState extends State<KanbanBoardScreen> {
   }
 
   /// ================= SECTION =================
-  Widget _buildSection(
-      String title,
-      List<Map<String, dynamic>> tasks,
-      ) {
-
-    String statusKey =
-    title == "Upcoming"
+  Widget _buildSection(String title, List<Map<String, dynamic>> tasks) {
+    String statusKey = title == "Upcoming"
         ? "todo"
         : title == "In Progress"
         ? "progress"
@@ -64,7 +76,6 @@ class _KanbanBoardScreenState extends State<KanbanBoardScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: DragTarget<Map<String, dynamic>>(
         onAcceptWithDetails: (details) {
-
           final task = details.data;
 
           print("🎯 Dropped into $statusKey");
@@ -76,17 +87,16 @@ class _KanbanBoardScreenState extends State<KanbanBoardScreen> {
           );
         },
         builder: (context, candidateData, rejectedData) {
-
           return Card(
             elevation: 5,
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14)),
+              borderRadius: BorderRadius.circular(14),
+            ),
             child: Container(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   Text(
                     "$title (${tasks.length})",
                     style: const TextStyle(
@@ -102,7 +112,6 @@ class _KanbanBoardScreenState extends State<KanbanBoardScreen> {
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: tasks.length,
                     onReorder: (oldIndex, newIndex) {
-
                       if (newIndex > oldIndex) newIndex--;
 
                       final task = tasks.removeAt(oldIndex);
@@ -115,7 +124,6 @@ class _KanbanBoardScreenState extends State<KanbanBoardScreen> {
                       );
                     },
                     itemBuilder: (context, index) {
-
                       final task = tasks[index];
 
                       return LongPressDraggable<Map<String, dynamic>>(
@@ -154,7 +162,6 @@ class _KanbanBoardScreenState extends State<KanbanBoardScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             Container(
               width: 6,
               height: 60,
@@ -173,19 +180,18 @@ class _KanbanBoardScreenState extends State<KanbanBoardScreen> {
                   Text(
                     task['title'] ?? "",
                     style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 5),
                   Text(
                     task['project_name'] ?? "",
-                    style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey),
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    "Date: ${task['task_date']}",
+                    "Date: ${formatDate(task['task_date'])}",
                     style: const TextStyle(fontSize: 12),
                   ),
                 ],

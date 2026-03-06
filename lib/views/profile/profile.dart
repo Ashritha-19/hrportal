@@ -1,12 +1,17 @@
-// ignore_for_file: deprecated_member_use, unnecessary_underscores
+// ignore_for_file: deprecated_member_use, unnecessary_underscores, avoid_print, use_build_context_synchronously
+
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hrportal/service/profile/editProfileService.dart';
 import 'package:hrportal/service/profile/kanbanService.dart';
 import 'package:hrportal/views/profile/document/document.dart';
 import 'package:hrportal/views/profile/editProfile.dart';
 import 'package:hrportal/views/profile/kanban.dart';
 import 'package:hrportal/views/profile/logout.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:hrportal/service/dashboard/dashboardservice.dart';
 import 'package:hrportal/service/profile/theme.dart';
@@ -33,6 +38,8 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _body(BuildContext context) {
     final dashboard = context.watch<DashboardProvider>();
+    final profileProvider = context.watch<ProfileProvider>();
+
     final employee = dashboard.dashboardData?["employee"];
 
     final screenHeight = MediaQuery.of(context).size.height;
@@ -132,7 +139,7 @@ class ProfileScreen extends StatelessWidget {
                         const AttendanceScreen(),
                       ),
                       _menuTile(
-                        Icons.receipt_long_outlined,
+                        Icons.event_busy,
                         "Leave Requests",
                         const LeaveRequestsScreen(),
                       ),
@@ -152,14 +159,14 @@ class ProfileScreen extends StatelessWidget {
                         const PayslipsScreen(),
                       ),
                       _menuTile(
-                        Icons.view_kanban_outlined, // ✅ Better icon
+                        Icons.view_kanban_outlined,
                         "Kanban Board",
                         ChangeNotifierProvider(
                           create: (_) => KanbanProvider(),
                           child: const KanbanBoardScreen(),
                         ),
                       ),
-                       _menuTile(
+                      _menuTile(
                         Icons.edit_document,
                         "Documents",
                         const DocumentsScreen(),
@@ -193,22 +200,29 @@ class ProfileScreen extends StatelessWidget {
                     child: CircleAvatar(
                       radius: avatarRadius,
                       backgroundColor: const Color(0xFFEDE7FF),
-                      backgroundImage: employee?["profile_image"] != null
-                          ? NetworkImage(employee["profile_image"])
-                          : const AssetImage("assets/profile.png")
-                                as ImageProvider,
+                      backgroundImage: profileProvider.profileImage.isNotEmpty
+                          ? NetworkImage(profileProvider.profileImage)
+                          : (employee?["profile_image"] != null
+                                ? NetworkImage(employee["profile_image"])
+                                : const AssetImage("assets/profile.png")
+                                      as ImageProvider),
                     ),
                   ),
                   Positioned(
                     bottom: 2,
                     right: 2,
-                    child: CircleAvatar(
-                      radius: 16,
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.camera_alt,
-                        size: 18,
-                        color: Color(0xFF4A6CF7),
+                    child: GestureDetector(
+                      onTap: () {
+                        pickImage(context);
+                      },
+                      child: const CircleAvatar(
+                        radius: 16,
+                        backgroundColor: Colors.white,
+                        child: Icon(
+                          Icons.camera_alt,
+                          size: 18,
+                          color: Color(0xFF4A6CF7),
+                        ),
                       ),
                     ),
                   ),
@@ -217,7 +231,7 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          /// 🌗 ================= THEME TOGGLE =================
+          /// ================= THEME TOGGLE =================
           Positioned(
             top: 16,
             right: 16,
@@ -239,8 +253,50 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // ================= SECTION CARD =================
+  /// ================= PICK IMAGE =================
+  Future<void> pickImage(BuildContext context) async {
+    final ImagePicker picker = ImagePicker();
 
+    final XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (pickedFile == null) return;
+
+    File? croppedFile = await cropImage(pickedFile.path);
+
+    if (croppedFile == null) return;
+
+    await context.read<ProfileProvider>().uploadProfileImage(
+      context,
+      croppedFile,
+    );
+  }
+
+  /// ================= CROP IMAGE =================
+  Future<File?> cropImage(String path) async {
+    CroppedFile? croppedFile = await ImageCropper().cropImage(
+      sourcePath: path,
+      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Crop Image',
+          toolbarColor: Colors.blue,
+          toolbarWidgetColor: Colors.white,
+          lockAspectRatio: true,
+        ),
+        IOSUiSettings(title: 'Crop Image'),
+      ],
+    );
+
+    if (croppedFile != null) {
+      return File(croppedFile.path);
+    }
+
+    return null;
+  }
+
+  /// ================= SECTION CARD =================
   Widget _sectionCard(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
@@ -263,8 +319,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // ================= LOGOUT CARD =================
-
+  /// ================= LOGOUT =================
   Widget _logoutCard(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
@@ -280,19 +335,16 @@ class ProfileScreen extends StatelessWidget {
           "Logout",
           style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
         ),
-
-        /// 🔥 POPUP CALL (NO SCREEN)
         onTap: () => LogoutDialog.show(context),
       ),
     );
   }
 }
 
-// ================= REUSABLE =================
-
 class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String text;
+
   const _InfoRow(this.icon, this.text);
 
   @override

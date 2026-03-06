@@ -2,9 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hrportal/constants/companyLogo.dart';
 import 'package:hrportal/service/notificationservice.dart';
 import 'package:hrportal/views/dashboard/checkinVerification.dart';
 import 'package:hrportal/views/notifications/notificationIcon.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:hrportal/service/dashboard/dashboardservice.dart';
 
@@ -28,6 +30,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Future.microtask(() {
       context.read<DashboardProvider>().fetchDashboard();
     });
+  }
+
+  /// 📅 Date format
+  String formatDate(String date) {
+    final parsed = DateTime.parse(date);
+    return DateFormat('dd MMM yyyy').format(parsed);
   }
 
   @override
@@ -75,6 +83,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
+          leading: const CompanyLogoIcon(size: 28),
           automaticallyImplyLeading: false,
           backgroundColor: theme.cardColor,
           elevation: 0,
@@ -96,18 +105,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
               _profileCard(employee, theme),
               const SizedBox(height: 12),
 
-              Row(
-                children: [
-                  _clockCard(provider, theme),
-                  const SizedBox(width: 12),
-                  _infoCard(
-                    theme,
-                    "Shift Timings",
-                    "10:30 AM - 7:00 PM",
-                    Icons.access_time,
-                    sub: "8 hrs 30 mins",
-                  ),
-                ],
+              IntrinsicHeight(
+                child: Row(
+                  children: [
+                    _clockCard(provider, theme),
+                    const SizedBox(width: 12),
+                    _infoCard(
+                      theme,
+                      "Shift Timings",
+                      "10:30 AM - 7:00 PM",
+                      Icons.access_time,
+                      sub: "8 hrs 30 mins",
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 12),
@@ -132,7 +143,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               const SizedBox(height: 12),
 
-              if (holidays.isNotEmpty) _upcomingHolidays(holidays, theme),
+              _upcomingHolidays(holidays, theme),
               const SizedBox(height: 12),
               if (birthdays.isNotEmpty) _upcomingBirthdays(birthdays, theme),
             ],
@@ -185,6 +196,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         padding: const EdgeInsets.all(14),
         decoration: _cardDecoration(theme),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("Today's Work Time", style: theme.textTheme.bodySmall),
@@ -293,17 +305,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: theme.textTheme.titleMedium,
             ),
           ),
+
           Divider(color: theme.dividerColor),
-          ...holidays.map(
-            (holiday) => ListTile(
-              leading: Icon(
-                Icons.beach_access,
-                color: theme.colorScheme.primary,
+
+          if (holidays.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(Icons.event_busy, color: theme.colorScheme.primary),
+                  const SizedBox(width: 10),
+                  Text(
+                    "No Upcoming Holidays",
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ],
               ),
-              title: Text(holiday["title"].trim()),
-              subtitle: Text(holiday["holiday_date"]),
+            )
+          else
+            ...holidays.map(
+              (holiday) => ListTile(
+                leading: Icon(
+                  Icons.beach_access,
+                  color: theme.colorScheme.primary,
+                ),
+                title: Text(holiday["title"].trim()),
+                subtitle: Text(formatDate(holiday["holiday_date"])),
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -329,7 +358,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             (b) => ListTile(
               leading: Icon(Icons.cake, color: theme.colorScheme.primary),
               title: Text(b["empName"]),
-              subtitle: Text(b["empDob"]),
+              subtitle: Text(formatDate(b["empDob"])),
             ),
           ),
         ],

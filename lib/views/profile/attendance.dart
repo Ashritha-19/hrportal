@@ -24,7 +24,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   /// 📅 Date format
   String formatDate(String date) {
     final parsed = DateTime.parse(date);
-    return DateFormat('dd MMM, yyyy').format(parsed);
+    return DateFormat('dd MMM yyyy').format(parsed);
   }
 
   /// 🧱 Title : Value row
@@ -227,7 +227,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         title: Text(
           "My Attendance",
           style: theme.textTheme.titleMedium!.copyWith(
-            fontSize: 30,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: theme.brightness == Brightness.dark
                 ? Colors.white

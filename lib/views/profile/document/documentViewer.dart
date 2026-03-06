@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 
 class DocumentViewerScreen extends StatelessWidget {
-
   final String url;
 
   const DocumentViewerScreen({
@@ -13,19 +12,24 @@ class DocumentViewerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Document Viewer"),
-      ),
+      appBar: AppBar(title: const Text("Document")),
 
       body: Center(
-        child: Image.network(
-          url,
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) {
-            return const Text("Unable to load document");
-          },
+        child: InteractiveViewer(
+          child: Image.network(
+            url,
+            loadingBuilder: (context, child, progress) {
+              if (progress == null) return child;
+
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return const Text("Unable to load document");
+            },
+          ),
         ),
       ),
     );

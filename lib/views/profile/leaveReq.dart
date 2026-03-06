@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, deprecated_member_use, unnecessary_underscores
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:hrportal/service/profile/leaveReqService.dart';
 
@@ -45,6 +46,12 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
     selectedLeaveType = 'Sick Leave';
   }
 
+  /// 📅 Date format
+  String formatDate(String date) {
+    final parsed = DateTime.parse(date);
+    return DateFormat('dd MMM yyyy').format(parsed);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -57,7 +64,7 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
         title: Text(
           "Leave Requests",
           style: theme.textTheme.titleMedium!.copyWith(
-            fontSize: 30,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: theme.brightness == Brightness.dark
                 ? Colors.white
@@ -174,7 +181,7 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
-                                        '${item['from_date']} → ${item['to_date']}',
+                                        '${formatDate(item['from_date'])} → ${formatDate(item['to_date'])}',
                                         style: theme.textTheme.bodyMedium,
                                       ),
                                     ],
@@ -199,7 +206,7 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                                   const SizedBox(height: 6),
 
                                   Text(
-                                    'Applied On: ${item['submitted_at']}',
+                                    'Applied On: ${formatDate(item['submitted_at'])}',
                                     style: theme.textTheme.bodySmall,
                                   ),
                                 ],

@@ -1,7 +1,9 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously, unnecessary_underscores
 
 import 'package:flutter/material.dart';
+import 'package:hrportal/constants/companyLogo.dart';
 import 'package:hrportal/views/notifications/notificationIcon.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:hrportal/service/report/projectservice.dart';
 import 'package:hrportal/service/report/worktypeservice.dart';
@@ -30,6 +32,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
   );
   final TextEditingController taskController = TextEditingController();
 
+
+  /// 📅 Date format
+  String formatDate(String date) {
+    final parsed = DateTime.parse(date);
+    return DateFormat('dd MMM yyyy').format(parsed);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -55,20 +64,21 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: theme.cardColor,
-        elevation: 0,
-        titleSpacing: 16,
-        title: Text(
-          "Daily Reports",
-          style: theme.textTheme.titleMedium!.copyWith(
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
+      appBar:  AppBar(
+          leading: const CompanyLogoIcon(size: 28),
+          automaticallyImplyLeading: false,
+          backgroundColor: theme.cardColor,
+          elevation: 0,
+          titleSpacing: 16,
+          title: Text(
+            "Daily Reports",
+            style: theme.textTheme.titleMedium!.copyWith(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          actions: const [NotificationIcon()],
         ),
-        actions: [NotificationIcon()],
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -250,7 +260,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       theme,
                       color: _getColorByWorkType(report["work_type"], theme),
                       icon: _getIconByWorkType(report["work_type"]),
-                      time: report["report_date"] ?? "",
+                      time: formatDate(report["report_date"] ?? ""),
                       title:
                           "${report["project_name"]} - ${report["work_type"]}",
                       subtitle: report["task_description"] ?? "",

@@ -1,6 +1,7 @@
 // ignore_for_file: file_names, use_build_context_synchronously, deprecated_member_use, unnecessary_underscores
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:hrportal/service/profile/overTimeService.dart';
 import 'package:hrportal/service/report/projectservice.dart';
@@ -24,6 +25,12 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
     });
   }
 
+    /// 📅 Date format
+  String formatDate(String date) {
+    final parsed = DateTime.parse(date);
+    return DateFormat('dd MMM yyyy').format(parsed);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -36,7 +43,7 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
         title: Text(
           "Over Time Requests",
           style: theme.textTheme.titleMedium!.copyWith(
-            fontSize: 30,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: theme.brightness == Brightness.dark
                 ? Colors.white
@@ -108,7 +115,7 @@ class _OvertimeRequestsScreenState extends State<OvertimeRequestsScreen> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        item['ot_date'] ?? '-',
+                                        formatDate(item['ot_date'] ?? '-'),
                                         style: theme.textTheme.titleMedium!
                                             .copyWith(
                                               fontWeight: FontWeight.bold,

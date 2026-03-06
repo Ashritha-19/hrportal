@@ -57,7 +57,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         title: Text(
           "Edit Profile",
           style: theme.textTheme.titleMedium!.copyWith(
-            fontSize: 24,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: theme.brightness == Brightness.dark
                 ? Colors.white

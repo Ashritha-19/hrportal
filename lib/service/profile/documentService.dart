@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, file_names
 
 import 'dart:convert';
 import 'dart:io';
@@ -7,9 +7,7 @@ import 'package:hrportal/constants/apiconstants.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 class DocumentProvider extends ChangeNotifier {
-
   bool isLoading = false;
 
   String empIdProof = "";
@@ -20,12 +18,10 @@ class DocumentProvider extends ChangeNotifier {
   /// ==============================
 
   Future<void> fetchDocuments() async {
-
     isLoading = true;
     notifyListeners();
 
     try {
-
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
 
@@ -40,18 +36,13 @@ class DocumentProvider extends ChangeNotifier {
       );
 
       if (res.statusCode == 200) {
-
         final json = jsonDecode(res.body)['data'];
 
         empIdProof = json['empIdProof'] ?? "";
         empAddressProof = json['empAddressProof'] ?? "";
-
       }
-
     } catch (e) {
-
       print("Fetch Documents Error => $e");
-
     }
 
     isLoading = false;
@@ -62,74 +53,46 @@ class DocumentProvider extends ChangeNotifier {
   /// UPLOAD DOCUMENT
   /// ==============================
 
-  Future<void> uploadDocument({
+  Future<bool> uploadDocument({
     required File file,
     required String type,
   }) async {
-
     try {
-
-      isLoading = true;
-      notifyListeners();
-
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
 
-      final url =
-          "${Apiconstants.baseUrl}/employee/profile/upload-documents";
+      final url = Apiconstants.baseUrl + Apiconstants.uploadDocumentsEndpoint;
 
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse(url),
-      );
+      var request = http.MultipartRequest("POST", Uri.parse(url));
 
-      request.headers.addAll({
-        "Authorization": "Bearer $token",
-      });
+      request.headers.addAll({"Authorization": "Bearer $token"});
 
-      /// ID PROOF
       if (type == "id") {
-
         request.files.add(
-          await http.MultipartFile.fromPath(
-            "id_proof",
-            file.path,
-          ),
+          await http.MultipartFile.fromPath("id_proof", file.path),
         );
-
-      }
-
-      /// ADDRESS PROOF
-      else {
-
+      } else {
         request.files.add(
-          await http.MultipartFile.fromPath(
-            "address_proof",
-            file.path,
-          ),
+          await http.MultipartFile.fromPath("address_proof", file.path),
         );
       }
 
       var response = await request.send();
 
+      var body = await response.stream.bytesToString();
+
+      print("UPLOAD STATUS => ${response.statusCode}");
+      print("UPLOAD BODY => $body");
+
       if (response.statusCode == 200) {
-
-        print("Document uploaded successfully");
-
         await fetchDocuments();
-
+        return true;
       } else {
-
-        print("Upload failed");
+        return false;
       }
-
     } catch (e) {
-
       print("Upload Error => $e");
-
+      return false;
     }
-
-    isLoading = false;
-    notifyListeners();
   }
 }

@@ -1,8 +1,9 @@
-// ignore_for_file: deprecated_member_use, use_build_context_synchronously
+// ignore_for_file: deprecated_member_use, use_build_context_synchronously, unnecessary_underscores
 
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:hrportal/service/profile/payslipsservice.dart';
 import 'package:http/http.dart' as http;
@@ -50,6 +51,12 @@ class _PayslipsScreenState extends State<PayslipsScreen> {
     return months[int.parse(month)];
   }
 
+    /// 📅 Date format
+  String formatDate(String date) {
+    final parsed = DateTime.parse(date);
+    return DateFormat('dd MMM yyyy').format(parsed);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -62,7 +69,7 @@ class _PayslipsScreenState extends State<PayslipsScreen> {
         title: Text(
           "My Payslips",
           style: theme.textTheme.titleMedium!.copyWith(
-            fontSize: 30,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: theme.brightness == Brightness.dark
                 ? Colors.white
@@ -116,7 +123,7 @@ class _PayslipsScreenState extends State<PayslipsScreen> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            "Uploaded on ${payslip['uploaded_at'].split(" ")[0]}",
+                            "Uploaded on ${formatDate(payslip['uploaded_at'].split(" ")[0])}",
                             style: theme.textTheme.bodySmall,
                           ),
                         ],
