@@ -274,7 +274,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           CircleAvatar(
             radius: 32,
-            backgroundImage: NetworkImage(employee["profile_image"]),
+            backgroundImage:
+                (employee["profile_image"] != null &&
+                    employee["profile_image"].toString().isNotEmpty)
+                ? NetworkImage(employee["profile_image"])
+                : null,
+            child:
+                (employee["profile_image"] == null ||
+                    employee["profile_image"].toString().isEmpty)
+                ? Icon(Icons.person, size: 32)
+                : null,
           ),
           const SizedBox(width: 16),
           Column(
