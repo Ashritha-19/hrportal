@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hrportal/constants/companyLogo.dart';
 import 'package:hrportal/service/notificationservice.dart';
+import 'package:hrportal/views/authentication/login.dart';
 import 'package:hrportal/views/dashboard/checkinVerification.dart';
 import 'package:hrportal/views/notifications/notificationIcon.dart';
 import 'package:intl/intl.dart';
@@ -58,14 +59,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     if (provider.dashboardData == null) {
-      return Scaffold(
-        body: Center(
-          child: Text(
-            "Session expired. Please login again.",
-            style: theme.textTheme.bodyMedium,
-          ),
-        ),
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushAndRemoveUntil(
+
+
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
+        );
+      });
+
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final data = provider.dashboardData!;

@@ -22,7 +22,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   String? selectedProjectId;
   String? selectedWorkType;
 
-  final DateTime currentDate = DateTime.now();
+  DateTime selectedDate = DateTime.now();
 
   final TextEditingController hoursController = TextEditingController(
     text: "00",
@@ -31,7 +31,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     text: "00",
   );
   final TextEditingController taskController = TextEditingController();
-
 
   /// 📅 Date format
   String formatDate(String date) {
@@ -64,21 +63,21 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar:  AppBar(
-          leading: const CompanyLogoIcon(size: 28),
-          automaticallyImplyLeading: false,
-          backgroundColor: theme.cardColor,
-          elevation: 0,
-          titleSpacing: 16,
-          title: Text(
-            "Daily Reports",
-            style: theme.textTheme.titleMedium!.copyWith(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-            ),
+      appBar: AppBar(
+        leading: const CompanyLogoIcon(size: 28),
+        automaticallyImplyLeading: false,
+        backgroundColor: theme.cardColor,
+        elevation: 0,
+        titleSpacing: 16,
+        title: Text(
+          "Daily Reports",
+          style: theme.textTheme.titleMedium!.copyWith(
+            fontSize: 26,
+            fontWeight: FontWeight.bold,
           ),
-          actions: const [NotificationIcon()],
         ),
+        actions: const [NotificationIcon()],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -283,13 +282,42 @@ class _ReportsScreenState extends State<ReportsScreen> {
       children: [
         _label(theme, "Date", Icons.calendar_today),
         const SizedBox(height: 6),
-        Container(
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          alignment: Alignment.centerLeft,
-          decoration: _outlinedBox(theme),
-          child: Text(
-            "${currentDate.day}/${currentDate.month}/${currentDate.year}",
+        InkWell(
+          onTap: () async {
+            final today = DateTime.now();
+            final yesterday = today.subtract(const Duration(days: 1));
+
+            final pickedDate = await showDatePicker(
+              context: context,
+              initialDate: selectedDate,
+              firstDate: yesterday,
+              lastDate: today,
+
+              /// ✅ ONLY TODAY & YESTERDAY ENABLED
+              selectableDayPredicate: (date) {
+                return (date.year == today.year &&
+                        date.month == today.month &&
+                        date.day == today.day) ||
+                    (date.year == yesterday.year &&
+                        date.month == yesterday.month &&
+                        date.day == yesterday.day);
+              },
+            );
+
+            if (pickedDate != null) {
+              setState(() {
+                selectedDate = pickedDate;
+              });
+            }
+          },
+          child: Container(
+            height: 48,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            alignment: Alignment.centerLeft,
+            decoration: _outlinedBox(theme),
+            child: Text(
+              "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}",
+            ),
           ),
         ),
       ],
@@ -470,7 +498,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       taskDescription: taskController.text.trim(),
       hoursWorked: totalHours.toStringAsFixed(2),
       reportDate:
-          "${currentDate.year}-${currentDate.month.toString().padLeft(2, '0')}-${currentDate.day.toString().padLeft(2, '0')}",
+          "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}",
       workType: selectedWorkType!,
     );
 

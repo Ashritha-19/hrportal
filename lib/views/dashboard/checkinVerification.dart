@@ -67,7 +67,7 @@ class _CheckInVerificationScreenState extends State<CheckInVerificationScreen> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
-
+   
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
         throw Exception("Location permission denied");
@@ -85,6 +85,7 @@ class _CheckInVerificationScreenState extends State<CheckInVerificationScreen> {
       );
 
       Placemark place = placemarks.first;
+
 
       /// 🧠 Clean formatted address
       String formattedAddress = [
@@ -106,6 +107,7 @@ class _CheckInVerificationScreenState extends State<CheckInVerificationScreen> {
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
